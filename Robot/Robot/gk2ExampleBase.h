@@ -22,12 +22,12 @@ namespace mini::gk2
 
 	private:
 		static constexpr float ROTATION_SPEED = 0.002f;
-		static constexpr float MOVEMENT_SPEED = 0.01f;
+		static constexpr float MOVEMENT_SPEED = 2.0;
 
-		static constexpr BYTE KEY_W = 0x57;
-		static constexpr BYTE KEY_A = 0x41;
-		static constexpr BYTE KEY_S = 0x73;
-		static constexpr BYTE KEY_D = 0x44;
+		static constexpr BYTE KEY_W = 17;
+		static constexpr BYTE KEY_A = 30;
+		static constexpr BYTE KEY_S = 31;
+		static constexpr BYTE KEY_D = 32;
 	};
 }
 

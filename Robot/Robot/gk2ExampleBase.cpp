@@ -15,23 +15,24 @@ Gk2ExampleBase::Gk2ExampleBase(HINSTANCE hInstance, UINT width, UINT height, std
 void Gk2ExampleBase::HandleCameraInput(double dt)
 {
 	MouseState mstate;
-	if (m_mouse.GetState(mstate) && mstate.isButtonDown(0)) {
-		auto d = mstate.getMousePositionChange();
-		m_camera.Rotate(-d.y*ROTATION_SPEED, -d.x*ROTATION_SPEED);
-	}
+	if (m_mouse.GetState(mstate))
+		if (mstate.isButtonDown(0)) {
+			auto d = mstate.getMousePositionChange();
+			m_camera.Rotate(-d.y*ROTATION_SPEED, -d.x*ROTATION_SPEED);
+		}
 
 	KeyboardState kstate;
 	if (m_keyboard.GetState(kstate)) {
 		XMFLOAT3 moveVec = XMFLOAT3(0, 0, 0);
 
 		if (kstate.isKeyDown(KEY_W))
-			moveVec.z -= MOVEMENT_SPEED * dt;
+			moveVec.z += MOVEMENT_SPEED * dt;
 
 		if (kstate.isKeyDown(KEY_A))
 			moveVec.x -= MOVEMENT_SPEED * dt;
 
 		if (kstate.isKeyDown(KEY_S))
-			moveVec.z += MOVEMENT_SPEED * dt;
+			moveVec.z -= MOVEMENT_SPEED * dt;
 
 		if (kstate.isKeyDown(KEY_D))
 			moveVec.x += MOVEMENT_SPEED * dt;
