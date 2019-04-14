@@ -13,7 +13,7 @@ namespace mini::gk2
 		Gk2ExampleBase(HINSTANCE hInstance, UINT width, UINT height, std::wstring title);
 
 	protected:
-		bool HandleCameraInput(double dt);
+		void HandleCameraInput(double dt);
 
 		DiDevice m_inputDevice;
 		Mouse m_mouse;
@@ -22,6 +22,6 @@ namespace mini::gk2
 
 	private:
 		static constexpr float ROTATION_SPEED = 0.01f;
-		static constexpr float ZOOM_SPEED = 0.02f;
+		static constexpr float MOVEMENT_SPEED = 0.02f;
 	};
 }
