@@ -7,40 +7,36 @@ Gk2ExampleBase::Gk2ExampleBase(HINSTANCE hInstance, UINT width, UINT height, std
 	: DxApplication(hInstance, width, height, title), m_inputDevice(hInstance),
 	m_mouse(m_inputDevice.CreateMouseDevice(m_window.getHandle())),
 	m_keyboard(m_inputDevice.CreateKeyboardDevice(m_window.getHandle())),
-	m_camera(XMFLOAT3(0, 0, 0), 0.01f, 50.0f, 5)
+	m_camera()
 { }
+
+
 
 void Gk2ExampleBase::HandleCameraInput(double dt)
 {
-	//MouseState mstate;
-	//if (!m_mouse.GetState(mstate))
-	//	return false;
-	//auto d = mstate.getMousePositionChange();
-	//if (mstate.isButtonDown(0))
-	//	m_camera.Rotate(d.y*ROTATION_SPEED, d.x*ROTATION_SPEED);
-	//else if (mstate.isButtonDown(1))
-	//	m_camera.Zoom(d.y * MOVEMENT_SPEED);
-	//else
-	//	return false;
-	//return true;
+	MouseState mstate;
+	if (m_mouse.GetState(mstate) && mstate.isButtonDown(0)) {
+		auto d = mstate.getMousePositionChange();
+		m_camera.Rotate(-d.y*ROTATION_SPEED, -d.x*ROTATION_SPEED);
+	}
+
+	KeyboardState kstate;
+	if (m_keyboard.GetState(kstate)) {
+		XMFLOAT3 moveVec = XMFLOAT3(0, 0, 0);
+
+		if (kstate.isKeyDown(KEY_W))
+			moveVec.z -= MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_A))
+			moveVec.x -= MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_S))
+			moveVec.z += MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_D))
+			moveVec.x += MOVEMENT_SPEED * dt;
+
+		m_camera.Move(moveVec);
+	}
 }
-//
-//void Gk2ExampleBase::HandleCameraInput(double dt)
-//{
-//	KeyboardState kstate;
-//	MouseState mstate;
-//	if (m_mouse.GetState(mstate)) {
-//		auto d = mstate.getMousePositionChange();
-//		if (mstate.isButtonDown(0))
-//			m_camera.Rotate(d.y*ROTATION_SPEED, d.x*ROTATION_SPEED);
-//		else if (mstate.isButtonDown(1))
-//			m_camera.Zoom(d.y * MOVEMENT_SPEED);
-//		else
-//			return false;
-//
-//	}
-//	if (m_keyboard.GetState(kstate) {
-//
-//	}
-//}
 

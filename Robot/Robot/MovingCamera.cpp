@@ -10,7 +10,7 @@ MovingCamera::MovingCamera(XMFLOAT3 position, float angleY, float angleX)
 MovingCamera::MovingCamera(XMFLOAT3 position) : MovingCamera(position, 0.0f, 0.0f)
 { }
 
-MovingCamera::MovingCamera() : MovingCamera(XMFLOAT3{ 0.0f, 0.0f, 0.0f })
+MovingCamera::MovingCamera() : MovingCamera(XMFLOAT3{ 0.0f, 0.0f, -10.0f })
 { }
 
 void MovingCamera::ClampRotation()
@@ -56,10 +56,15 @@ void MovingCamera::Rotate(float dx, float dy)
 	ClampRotation();
 }
 
-void mini::MovingCamera::Move(float dx, float dy, float dz)
+void mini::MovingCamera::Move(XMFLOAT3 v)
 {
-	m_position.x += dx;
-	m_position.y += dy;
-	m_position.z += dz;
+	m_position.y += v.y;
+
+	auto moveVec = XMFLOAT4(v.x, 0, v.z, 0);
+	XMFLOAT4 move;
+	XMStoreFloat4(&move, XMVector3TransformNormal(XMLoadFloat4(&moveVec), XMMatrixRotationY(getYAngle())));
+
+	m_position.x += move.x;
+	m_position.z += move.z;
 }
 

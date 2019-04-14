@@ -16,8 +16,7 @@ namespace mini
 		DirectX::XMMATRIX getViewMatrixInv() const;
 
 		void Rotate(float dx, float dy);
-		void Move(float dx, float dy, float dz);
-		void Move(DirectX::XMFLOAT3 v) { Move(v.x, v.y, v.z); }
+		void Move(DirectX::XMFLOAT3 v);
 
 		float getXAngle() const { return m_angleX; }
 		float getYAngle() const { return m_angleY; }
@@ -31,8 +30,8 @@ namespace mini
 	private:
 		void ClampRotation();
 
-		float m_minAngle = DirectX::XM_PIDIV2 * 8 / 9;
-		float m_maxAngle = -DirectX::XM_PIDIV2 * 8 / 9;
+		float m_minAngle = -DirectX::XM_PIDIV2 * 8 / 9;
+		float m_maxAngle = DirectX::XM_PIDIV2 * 8 / 9;
 		float m_angleX, m_angleY;
 		DirectX::XMFLOAT3 m_position;
 	};
