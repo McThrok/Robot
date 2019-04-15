@@ -38,9 +38,7 @@ namespace mini
 			void SetWorldMatrixBuffer(const ConstantBuffer<DirectX::XMFLOAT4X4>& buffer) { SetVSConstantBuffer(WorldMtxSlot, buffer); }
 			void SetViewMatrixBuffer(const ConstantBuffer<DirectX::XMFLOAT4X4, 2>& buffer) { SetVSConstantBuffer(ViewMtxSlot, buffer); }
 			void SetProjMatrixBuffer(const ConstantBuffer<DirectX::XMFLOAT4X4>& buffer) { SetVSConstantBuffer(ProjMtxSlot, buffer); }
-			void SetLightPosBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) {
-				SetPSConstantBuffer(LightPositionSlot, buffer);
-			}
+			void SetLightPosBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) { SetPSConstantBuffer(LightPositionSlot, buffer); }
 			void SetSurfaceColorBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) { SetPSConstantBuffer(SurfaceColorSlot, buffer); }
 		};
 	}

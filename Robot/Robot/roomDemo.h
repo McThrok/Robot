@@ -18,8 +18,7 @@ namespace mini::gk2
 	private:
 #pragma region CONSTANTS
 
-		//can't have in-class initializer since XMFLOAT4 constructors are not constexpr
-		static const DirectX::XMFLOAT4 TABLE_POS;
+		static const DirectX::XMFLOAT4 LIGHT_POS;
 #pragma endregion
 
 		ConstantBuffer<DirectX::XMFLOAT4X4> m_cbWorldMtx, //vertex shader constant buffer slot 0
