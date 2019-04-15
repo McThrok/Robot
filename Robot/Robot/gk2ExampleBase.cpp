@@ -25,6 +25,9 @@ void Gk2ExampleBase::HandleCameraInput(double dt)
 	if (m_keyboard.GetState(kstate)) {
 		XMFLOAT3 moveVec = XMFLOAT3(0, 0, 0);
 
+		if (kstate.isKeyDown(KEY_Q))
+			moveVec.y += MOVEMENT_SPEED * dt;
+
 		if (kstate.isKeyDown(KEY_W))
 			moveVec.z += MOVEMENT_SPEED * dt;
 
@@ -36,6 +39,9 @@ void Gk2ExampleBase::HandleCameraInput(double dt)
 
 		if (kstate.isKeyDown(KEY_D))
 			moveVec.x += MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_Z))
+			moveVec.y -= MOVEMENT_SPEED * dt;
 
 		m_camera.Move(moveVec);
 	}
