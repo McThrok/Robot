@@ -10,7 +10,7 @@ MovingCamera::MovingCamera(XMFLOAT3 position, float angleY, float angleX)
 MovingCamera::MovingCamera(XMFLOAT3 position) : MovingCamera(position, 0.0f, 0.0f)
 { }
 
-MovingCamera::MovingCamera() : MovingCamera(XMFLOAT3{ 0.0f, 0.0f, -10.0f })
+MovingCamera::MovingCamera() : MovingCamera(XMFLOAT3{ 0.0f, 0.0f, 0.0f })
 { }
 
 void MovingCamera::ClampRotation()

@@ -7,7 +7,7 @@ Gk2ExampleBase::Gk2ExampleBase(HINSTANCE hInstance, UINT width, UINT height, std
 	: DxApplication(hInstance, width, height, title), m_inputDevice(hInstance),
 	m_mouse(m_inputDevice.CreateMouseDevice(m_window.getHandle())),
 	m_keyboard(m_inputDevice.CreateKeyboardDevice(m_window.getHandle())),
-	m_camera()
+	m_camera(XMFLOAT3{ 0.0f, 0.0f, -10.0f })
 { }
 
 
