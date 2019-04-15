@@ -17,8 +17,8 @@ void Gk2ExampleBase::HandleCameraInput(double dt)
 	MouseState mstate;
 	if (m_mouse.GetState(mstate))
 		if (mstate.isButtonDown(0)) {
-			auto d = mstate.getMousePositionChange();
-			m_camera.Rotate(-d.y*ROTATION_SPEED, -d.x*ROTATION_SPEED);
+			POINT posChange = mstate.getMousePositionChange();
+			m_camera.Rotate(-posChange.y*ROTATION_SPEED, -posChange.x*ROTATION_SPEED);
 		}
 
 	KeyboardState kstate;
