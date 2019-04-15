@@ -3,7 +3,7 @@
 #include "diDevice.h"
 #include "keyboard.h"
 #include "mouse.h"
-#include "MovingCamera.h"
+#include "MovableCamera.h"
 
 namespace mini::gk2
 {
@@ -18,7 +18,7 @@ namespace mini::gk2
 		DiDevice m_inputDevice;
 		Mouse m_mouse;
 		Keyboard m_keyboard;
-		MovingCamera m_camera;
+		MovableCamera m_camera;
 
 	private:
 		static constexpr float ROTATION_SPEED = 0.002f;
