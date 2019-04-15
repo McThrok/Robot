@@ -8,7 +8,7 @@ using namespace gk2;
 using namespace DirectX;
 using namespace std;
 
-const XMFLOAT4 RoomDemo::TABLE_POS{ 0.5f, -0.96f, 0.5f, 1.0f };
+const XMFLOAT4 RoomDemo::LIGHT_POS = {1.0f, 1.0f, 1.0f, 1.0f};
 
 RoomDemo::RoomDemo(HINSTANCE appInstance)
 	: Gk2ExampleBase(appInstance, 1280, 720, L"Pokój"),
@@ -43,6 +43,7 @@ RoomDemo::RoomDemo(HINSTANCE appInstance)
 		XMMatrixRotationY(-XM_PIDIV2) * XMMatrixTranslation(-1.3f, -0.74f, -0.6f));
 
 	//Constant buffers content
+	m_cbLightPos.Update(m_device.context(), LIGHT_POS);
 	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	//Render states
