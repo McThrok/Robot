@@ -5,23 +5,45 @@ using namespace DirectX;
 
 Gk2ExampleBase::Gk2ExampleBase(HINSTANCE hInstance, UINT width, UINT height, std::wstring title)
 	: DxApplication(hInstance, width, height, title), m_inputDevice(hInstance),
-	  m_mouse(m_inputDevice.CreateMouseDevice(m_window.getHandle())),
-	  m_keyboard(m_inputDevice.CreateKeyboardDevice(m_window.getHandle())),
-      m_camera(XMFLOAT3(0,0,0), 0.01f, 50.0f, 5)
+	m_mouse(m_inputDevice.CreateMouseDevice(m_window.getHandle())),
+	m_keyboard(m_inputDevice.CreateKeyboardDevice(m_window.getHandle())),
+	m_camera(XMFLOAT3{ 0.0f, 0.0f, -10.0f })
 { }
 
-bool Gk2ExampleBase::HandleCameraInput(double dt)
+
+
+void Gk2ExampleBase::HandleCameraInput(double dt)
 {
 	MouseState mstate;
-	if (!m_mouse.GetState(mstate))
-		return false;
-	auto d = mstate.getMousePositionChange();
-	if (mstate.isButtonDown(0))
-		m_camera.Rotate(d.y*ROTATION_SPEED, d.x*ROTATION_SPEED);
-	else if (mstate.isButtonDown(1))
-		m_camera.Zoom(d.y * ZOOM_SPEED);
-	else
-		return false;
-	return true;
+	if (m_mouse.GetState(mstate))
+		if (mstate.isButtonDown(0)) {
+			POINT posChange = mstate.getMousePositionChange();
+			m_camera.Rotate(-posChange.y*ROTATION_SPEED, -posChange.x*ROTATION_SPEED);
+		}
+
+	KeyboardState kstate;
+	if (m_keyboard.GetState(kstate)) {
+		XMFLOAT3 moveVec = XMFLOAT3(0, 0, 0);
+
+		if (kstate.isKeyDown(KEY_Q))
+			moveVec.y += MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_W))
+			moveVec.z += MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_A))
+			moveVec.x -= MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_S))
+			moveVec.z -= MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_D))
+			moveVec.x += MOVEMENT_SPEED * dt;
+
+		if (kstate.isKeyDown(KEY_Z))
+			moveVec.y -= MOVEMENT_SPEED * dt;
+
+		m_camera.Move(moveVec);
+	}
 }
 
