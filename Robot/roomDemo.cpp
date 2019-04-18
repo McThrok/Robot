@@ -1,5 +1,5 @@
-﻿#include "roomDemo.h"
-#include <array>
+﻿#include <array>
+#include "roomDemo.h"
 #include "meshLoader.h"
 
 using namespace mini;
@@ -10,8 +10,7 @@ using namespace std;
 
 const XMFLOAT4 RoomDemo::LIGHT_POS = {1.0f, 1.0f, 1.0f, 1.0f};
 
-RoomDemo::RoomDemo(HINSTANCE appInstance)
-	: Gk2ExampleBase(appInstance, 1280, 720, L"Pokój"),
+RoomDemo::RoomDemo(HINSTANCE appInstance): Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
 	//Constant Buffers
 	m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
