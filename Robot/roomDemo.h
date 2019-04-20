@@ -28,9 +28,9 @@ namespace mini::gk2
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
 
 		Mesh m_floor; //uses m_floorMtx
-		Mesh m_teapot; //uses m_tepotMtx
+		Mesh m_puma; //uses m_pumaMtx
 
-		DirectX::XMFLOAT4X4 m_projMtx, m_floorMtx, m_teapotMtx;
+		DirectX::XMFLOAT4X4 m_projMtx, m_floorMtx, m_pumaMtx;
 
 		dx_ptr<ID3D11RasterizerState> m_rsCullNone;
 		dx_ptr<ID3D11BlendState> m_bsAlpha;
