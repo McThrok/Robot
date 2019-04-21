@@ -1,5 +1,5 @@
-﻿#include "roomDemo.h"
-#include <array>
+﻿#include <array>
+#include "roomDemo.h"
 #include "meshLoader.h"
 
 using namespace mini;
@@ -10,8 +10,7 @@ using namespace std;
 
 const XMFLOAT4 RoomDemo::LIGHT_POS = {1.0f, 1.0f, 1.0f, 1.0f};
 
-RoomDemo::RoomDemo(HINSTANCE appInstance)
-	: Gk2ExampleBase(appInstance, 1280, 720, L"Pokój"),
+RoomDemo::RoomDemo(HINSTANCE appInstance): Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
 	//Constant Buffers
 	m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
@@ -33,14 +32,12 @@ RoomDemo::RoomDemo(HINSTANCE appInstance)
 	tie(vertices, indices) = MeshLoader::CreateSquare(4.0f);
 	m_floor = m_device.CreateMesh(indices, vertices);
 
-	tie(vertices, indices) = MeshLoader::LoadMesh(L"resources/meshes/teapot.mesh");
-	m_teapot = m_device.CreateMesh(indices, vertices);
+	tie(vertices, indices) = MeshLoader::LoadPumaMesh(L"resources/puma/mesh1.txt");
+	m_puma = m_device.CreateMesh(indices, vertices);
 
 	//World matrix of all objects
 	XMStoreFloat4x4(&m_floorMtx, XMMatrixTranslation(0.0f, 0.0f, 2.0f) * XMMatrixRotationX(XM_PIDIV2));
-
-	XMStoreFloat4x4(&m_teapotMtx, XMMatrixTranslation(0.0f, -2.3f, 0.f) * XMMatrixScaling(0.1f, 0.1f, 0.1f) *
-		XMMatrixRotationY(-XM_PIDIV2) * XMMatrixTranslation(-1.3f, -0.74f, -0.6f));
+	XMStoreFloat4x4(&m_pumaMtx, XMMatrixIdentity());
 
 	//Constant buffers content
 	m_cbLightPos.Update(m_device.context(), LIGHT_POS);
@@ -100,7 +97,7 @@ void RoomDemo::DrawScene()
 	DrawMesh(m_floor, m_floorMtx);
 
 	//Draw teapot
-	DrawMesh(m_teapot, m_teapotMtx);
+	DrawMesh(m_puma, m_pumaMtx);
 
 	m_device.context()->RSSetState(nullptr);
 }

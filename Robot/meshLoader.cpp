@@ -138,9 +138,45 @@ MeshLoader::vpn_mesh_t MeshLoader::LoadMesh(const std::wstring& fileName)
 	XMFLOAT2 ignoreTextureCoords;
 	for (auto i = 0; i < vn; ++i)
 		input >> verts[i].position.x >> verts[i].position.y >> verts[i].position.z
-			>> verts[i].normal.x >> verts[i].normal.y >> verts[i].normal.z
-			>> ignoreTextureCoords.x >> ignoreTextureCoords.y;
+		>> verts[i].normal.x >> verts[i].normal.y >> verts[i].normal.z
+		>> ignoreTextureCoords.x >> ignoreTextureCoords.y;
 
+	vector<unsigned short> inds(in);
+	for (auto i = 0; i < in; ++i)
+		input >> inds[i];
+
+	return{ move(verts), move(inds) };
+}
+
+MeshLoader::vpn_mesh_t MeshLoader::LoadPumaMesh(const std::wstring& fileName)
+{
+	ifstream input;
+	input.exceptions(ios::badbit | ios::failbit | ios::eofbit);
+	input.open(fileName);
+
+	int vertices_count, vert_nr, vn, in;
+
+	input >> vertices_count;
+	vector<DirectX::XMFLOAT3> vertices(vertices_count);
+
+	for (auto i = 0; i < vertices_count; ++i)
+		input >> vertices[i].x >> vertices[i].y >> vertices[i].z;
+
+	input >> vn;
+	vector<VertexPositionNormal> verts(vn);
+
+	for (auto i = 0; i < vn; i++)
+	{
+		input >> vert_nr;
+		verts[i].position.x = vertices[vert_nr].x;
+		verts[i].position.y = vertices[vert_nr].y;
+		verts[i].position.z = vertices[vert_nr].z;
+
+		input >> verts[i].normal.x >> verts[i].normal.y >> verts[i].normal.z;
+	}
+
+	input >> in;
+	in *= 3;
 	vector<unsigned short> inds(in);
 	for (auto i = 0; i < in; ++i)
 		input >> inds[i];

@@ -10,15 +10,13 @@ Gk2ExampleBase::Gk2ExampleBase(HINSTANCE hInstance, UINT width, UINT height, std
 	m_camera(XMFLOAT3{ 0.0f, 0.0f, -10.0f })
 { }
 
-
-
 void Gk2ExampleBase::HandleCameraInput(double dt)
 {
 	MouseState mstate;
 	if (m_mouse.GetState(mstate))
 		if (mstate.isButtonDown(0)) {
 			POINT posChange = mstate.getMousePositionChange();
-			m_camera.Rotate(-posChange.y*ROTATION_SPEED, -posChange.x*ROTATION_SPEED);
+			m_camera.Rotate(posChange.y*ROTATION_SPEED, posChange.x*ROTATION_SPEED);
 		}
 
 	KeyboardState kstate;

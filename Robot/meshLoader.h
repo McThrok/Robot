@@ -40,6 +40,7 @@ namespace mini
 		static vpn_mesh_t CreateRectangle(float width, float height);
 
 		static vpn_mesh_t LoadMesh(const std::wstring& fileName);
+		static vpn_mesh_t LoadPumaMesh(const std::wstring& fileName);
 
 	private:
 

@@ -1,6 +1,5 @@
 #pragma once
 #include "camera.h"
-
 #include <DirectXMath.h>
 
 namespace mini
