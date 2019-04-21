@@ -15,13 +15,13 @@
     <ClCompile Include="meshLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="roomDemo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MovableCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,10 +35,10 @@
     <ClInclude Include="meshLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="roomDemo.h">
+    <ClInclude Include="MovableCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MovableCamera.h">
+    <ClInclude Include="Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

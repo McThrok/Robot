@@ -1,5 +1,5 @@
 ﻿#include <array>
-#include "roomDemo.h"
+#include "Scene.h"
 #include "meshLoader.h"
 
 using namespace mini;
@@ -8,15 +8,15 @@ using namespace gk2;
 using namespace DirectX;
 using namespace std;
 
-const XMFLOAT4 RoomDemo::LIGHT_POS = {1.0f, 1.0f, 1.0f, 1.0f};
+const XMFLOAT4 Scene::LIGHT_POS = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-RoomDemo::RoomDemo(HINSTANCE appInstance): Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
-	//Constant Buffers
-	m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
-	m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
-	m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
-	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
-	m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
+Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
+//Constant Buffers
+m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
+m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
+m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
 {
 	//Projection matrix
 	auto s = m_window.getClientSize();
@@ -32,12 +32,19 @@ RoomDemo::RoomDemo(HINSTANCE appInstance): Gk2ExampleBase(appInstance, 1280, 720
 	tie(vertices, indices) = MeshLoader::CreateSquare(4.0f);
 	m_floor = m_device.CreateMesh(indices, vertices);
 
-	tie(vertices, indices) = MeshLoader::LoadPumaMesh(L"resources/puma/mesh1.txt");
-	m_puma = m_device.CreateMesh(indices, vertices);
+	for (size_t i = 0; i < 6; i++)
+	{
+		wstring path = L"resources/puma/mesh" + to_wstring(i + 1) + L".txt";
+		tie(vertices, indices) = MeshLoader::LoadPumaMesh(path);
+		m_puma[i] = m_device.CreateMesh(indices, vertices);
+	}
 
 	//World matrix of all objects
 	XMStoreFloat4x4(&m_floorMtx, XMMatrixTranslation(0.0f, 0.0f, 2.0f) * XMMatrixRotationX(XM_PIDIV2));
-	XMStoreFloat4x4(&m_pumaMtx, XMMatrixIdentity());
+	for (size_t i = 0; i < 6; i++)
+	{
+		XMStoreFloat4x4(&m_pumaMtx[i], XMMatrixIdentity());
+	}
 
 	//Constant buffers content
 	m_cbLightPos.Update(m_device.context(), LIGHT_POS);
@@ -63,7 +70,7 @@ RoomDemo::RoomDemo(HINSTANCE appInstance): Gk2ExampleBase(appInstance, 1280, 720
 	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void RoomDemo::UpdateCameraCB()
+void Scene::UpdateCameraCB()
 {
 	XMMATRIX viewMtx = m_camera.getViewMatrix();
 	XMVECTOR det;
@@ -74,35 +81,36 @@ void RoomDemo::UpdateCameraCB()
 	m_cbViewMtx.Update(m_device.context(), view);
 }
 
-void RoomDemo::Update(const Clock& c)
+void Scene::Update(const Clock& c)
 {
 	double dt = c.getFrameTime();
 	HandleCameraInput(dt);
 }
 
-void RoomDemo::SetWorldMtx(DirectX::XMFLOAT4X4 mtx)
+void Scene::SetWorldMtx(DirectX::XMFLOAT4X4 mtx)
 {
 	m_cbWorldMtx.Update(m_device.context(), mtx);
 }
 
-void RoomDemo::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
+void Scene::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
 {
 	SetWorldMtx(worldMtx);
 	m.Render(m_device.context());
 }
 
-void RoomDemo::DrawScene()
+void Scene::DrawScene()
 {
 	//Draw floor
 	DrawMesh(m_floor, m_floorMtx);
 
-	//Draw teapot
-	DrawMesh(m_puma, m_pumaMtx);
+	//Draw puma
+	for (size_t i = 0; i < 6; i++)
+		DrawMesh(m_puma[i], m_pumaMtx[i]);
 
 	m_device.context()->RSSetState(nullptr);
 }
 
-void RoomDemo::Render()
+void Scene::Render()
 {
 	Gk2ExampleBase::Render();
 

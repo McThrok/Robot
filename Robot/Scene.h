@@ -6,10 +6,10 @@
 
 namespace mini::gk2
 {
-	class RoomDemo : public Gk2ExampleBase
+	class Scene : public Gk2ExampleBase
 	{
 	public:
-		explicit RoomDemo(HINSTANCE appInstance);
+		explicit Scene(HINSTANCE appInstance);
 
 	protected:
 		void Update(const Clock& dt) override;
@@ -28,14 +28,13 @@ namespace mini::gk2
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
 
 		Mesh m_floor; //uses m_floorMtx
-		Mesh m_puma; //uses m_pumaMtx
+		Mesh m_puma[6]; //uses m_pumaMtx
 
-		DirectX::XMFLOAT4X4 m_projMtx, m_floorMtx, m_pumaMtx;
+		DirectX::XMFLOAT4X4 m_projMtx, m_floorMtx, m_pumaMtx[6];
 
 		dx_ptr<ID3D11RasterizerState> m_rsCullNone;
 		dx_ptr<ID3D11BlendState> m_bsAlpha;
 		dx_ptr<ID3D11DepthStencilState> m_dssNoWrite;
-
 		dx_ptr<ID3D11InputLayout> m_inputlayout;
 
 		PhongEffect m_phongEffect;

@@ -1,5 +1,5 @@
 ﻿#include "exceptions.h"
-#include "roomDemo.h"
+#include "Scene.h"
 
 using namespace std;
 using namespace mini;
@@ -13,7 +13,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance, LPWSTR cmdLine,
 	CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 	try
 	{
-		RoomDemo app(hInstance);
+		Scene app(hInstance);
 		exitCode = app.Run();
 	}
 	catch (Exception& e)
