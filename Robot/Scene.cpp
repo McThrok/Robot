@@ -8,9 +8,11 @@ using namespace gk2;
 using namespace DirectX;
 using namespace std;
 
-const XMFLOAT4 RoomDemo::LIGHT_POS = { 1.0f, 1.0f, 1.0f, 1.0f };
+const XMFLOAT4 Scene::LIGHT_POS = { 1.0f, 1.0f, 1.0f, 1.0f };
+const XMFLOAT4 Scene::MIRROR_COLOR = { XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f) };
+const unsigned int Scene::BS_MASK = 0xffffffff;
 
-RoomDemo::RoomDemo(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
+Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
 //Constant Buffers
 m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
@@ -23,19 +25,20 @@ m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
 	auto ar = static_cast<float>(s.cx) / s.cy;
 	XMStoreFloat4x4(&m_projMtx, XMMatrixPerspectiveFovLH(XM_PIDIV4, ar, 0.01f, 100.0f));
 	m_cbProjMtx.Update(m_device.context(), m_projMtx);
-	UpdateCameraCB();
+
+	CreateRenderStates();
 
 	//Meshes
 	vector<VertexPositionNormal> vertices;
 	vector<unsigned short> indices;
-	
+
 	// Floor
 	tie(vertices, indices) = MeshLoader::CreateSquare(4.0f);
 	m_floor = m_device.CreateMesh(indices, vertices);
 
 	XMStoreFloat4x4(&m_floorMtx, XMMatrixTranslation(0.0f, 0.0f, 1.0f)
 		* XMMatrixRotationX(XM_PIDIV2));
-	
+
 	// Plate
 	tie(vertices, indices) = MeshLoader::CreateSquare(1.5f);
 	for (size_t i = 0; i < 2; i++)
@@ -48,6 +51,11 @@ m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
 		* XMMatrixRotationX(XM_PIDIV2)
 		* XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
 
+	XMMATRIX m_scale = XMMatrixScaling(1.0f, 1.0f, -1.0f);
+	XMMATRIX m = XMLoadFloat4x4(&m_plateMtx[0]);
+	XMMATRIX m_inverse = XMMatrixInverse(nullptr, m);
+	XMStoreFloat4x4(&m_mirrorMtx, m_inverse * m_scale * m);
+
 	// Puma
 	for (size_t i = 0; i < 6; i++)
 	{
@@ -55,26 +63,17 @@ m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
 		tie(vertices, indices) = MeshLoader::LoadPumaMesh(path);
 		m_puma[i] = m_device.CreateMesh(indices, vertices);
 	}
-	
+
 	for (size_t i = 0; i < 6; i++)
 		XMStoreFloat4x4(&m_pumaMtx[i], XMMatrixIdentity());
 
 	//Constant buffers content
 	m_cbLightPos.Update(m_device.context(), LIGHT_POS);
-	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 
-	//Render states
-	RasterizerDescription rsDesc;
-	rsDesc.CullMode = D3D11_CULL_NONE;
-	m_rsCullNone = m_device.CreateRasterizerState(rsDesc);
-
-	m_bsAlpha = m_device.CreateBlendState(BlendDescription::AlphaBlendDescription());
-	DepthStencilDescription dssDesc;
-	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	m_dssNoWrite = m_device.CreateDepthStencilState(dssDesc);
-
+	// Phong
 	auto vsCode = m_device.LoadByteCode(L"phongVS.cso");
 	auto psCode = m_device.LoadByteCode(L"phongPS.cso");
+
 	m_phongEffect = PhongEffect(m_device.CreateVertexShader(vsCode), m_device.CreatePixelShader(psCode),
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbLightPos, m_cbSurfaceColor);
 	m_inputlayout = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
@@ -83,25 +82,35 @@ m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
 	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void RoomDemo::UpdateCameraCB()
+void mini::gk2::Scene::CreateRenderStates()
 {
-	XMMATRIX viewMtx = m_camera.getViewMatrix();
+	DepthStencilDescription dssDesc;
+	m_dssWrite = m_device.CreateDepthStencilState(dssDesc.StencilWriteDescription());
+	m_dssTest = m_device.CreateDepthStencilState(dssDesc.StencilTestDescription());
+	m_rsCCW = m_device.CreateRasterizerState(RasterizerDescription(true));
+
+	BlendDescription bsDesc;
+	m_bsAlpha = m_device.CreateBlendState(bsDesc.AlphaBlendDescription());
+}
+
+void mini::gk2::Scene::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
+{
+	XMMATRIX mtx = XMLoadFloat4x4(&cameraMtx);
 	XMVECTOR det;
-	XMMATRIX invViewMtx = XMMatrixInverse(&det, viewMtx);
-	XMFLOAT4X4 view[2];
-	XMStoreFloat4x4(view, viewMtx);
-	XMStoreFloat4x4(view + 1, invViewMtx);
+	auto invvmtx = XMMatrixInverse(&det, mtx);
+	XMFLOAT4X4 view[2] = { cameraMtx };
+	XMStoreFloat4x4(view + 1, invvmtx);
 	m_cbViewMtx.Update(m_device.context(), view);
 }
 
-void RoomDemo::Update(const Clock& c)
+void Scene::Update(const Clock& c)
 {
 	double dt = c.getFrameTime();
 	HandleCameraInput(dt);
 	UpdateRobotMtx(dt);
 }
 
-void mini::gk2::RoomDemo::UpdateRobotMtx(float dt)
+void mini::gk2::Scene::UpdateRobotMtx(float dt)
 {
 	angle += dt;
 	XMVECTOR axis = { sqrt(3), 1, 0 };
@@ -130,7 +139,7 @@ void mini::gk2::RoomDemo::UpdateRobotMtx(float dt)
 
 }
 
-void mini::gk2::RoomDemo::InverseKinematics(XMVECTOR pos, XMVECTOR normal,
+void mini::gk2::Scene::InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 	float & a1, float & a2, float & a3, float & a4, float & a5)
 {
 	float l1 = 0.91f, l2 = 0.81f, l3 = 0.33f, dy = 0.27f, dz = 0.26f;
@@ -157,41 +166,72 @@ void mini::gk2::RoomDemo::InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 	a5 = acosf(XMVectorGetX(normal1));
 }
 
-void RoomDemo::SetWorldMtx(DirectX::XMFLOAT4X4 mtx)
+void Scene::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
 {
-	m_cbWorldMtx.Update(m_device.context(), mtx);
-}
-
-void RoomDemo::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
-{
-	SetWorldMtx(worldMtx);
+	m_cbWorldMtx.Update(m_device.context(), worldMtx);
 	m.Render(m_device.context());
 }
 
-void RoomDemo::DrawScene()
+void mini::gk2::Scene::DrawMirroredWorld()
 {
-	// Draw floor
-	DrawMesh(m_floor, m_floorMtx);
+	m_device.context()->OMSetDepthStencilState(m_dssWrite.get(), 1);
+	DrawPlateFront();
+	m_device.context()->OMSetDepthStencilState(m_dssTest.get(), 1);
+	m_device.context()->RSSetState(m_rsCCW.get());
 
-	// Draw plate
-	for (size_t i = 0; i < 2; i++)
-		DrawMesh(m_plate[i], m_plateMtx[i]);
+	XMMATRIX m_view = m_camera.getViewMatrix();
+	XMFLOAT4X4 new_view;
+	XMStoreFloat4x4(&new_view, XMLoadFloat4x4(&m_mirrorMtx) * m_view);
+	UpdateCameraCB(new_view);
 
-	// Draw puma
-	for (size_t i = 0; i < 6; i++)
-		DrawMesh(m_puma[i], m_pumaMtx[i]);
+	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+
+	DrawPuma();
+	DrawFloor();
+	DrawPlateFront();
 
 	m_device.context()->RSSetState(nullptr);
+	XMFLOAT4X4 old_view;
+	XMStoreFloat4x4(&old_view, m_view);
+	UpdateCameraCB(old_view);
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 }
 
-void RoomDemo::Render()
+void Scene::Render()
 {
 	Gk2ExampleBase::Render();
+	DrawMirroredWorld();
 
-	getDefaultRenderTarget().Begin(m_device.context());
-	m_cbProjMtx.Update(m_device.context(), m_projMtx);
-	UpdateCameraCB();
+	m_cbSurfaceColor.Update(m_device.context(), MIRROR_COLOR);
+	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+	DrawMesh(m_plate[0], m_plateMtx[0]);
+	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 
+	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 	m_phongEffect.Begin(m_device.context());
-	DrawScene();
+
+	DrawPuma();
+	DrawFloor();
+	DrawPlateBack();
+}
+
+void Scene::DrawPuma()
+{
+	for (size_t i = 0; i < 6; i++)
+		DrawMesh(m_puma[i], m_pumaMtx[i]);
+}
+
+void Scene::DrawFloor()
+{
+	DrawMesh(m_floor, m_floorMtx);
+}
+
+void Scene::DrawPlateFront()
+{
+	DrawMesh(m_plate[0], m_plateMtx[0]);
+}
+
+void Scene::DrawPlateBack()
+{
+	DrawMesh(m_plate[1], m_plateMtx[1]);
 }
