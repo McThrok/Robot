@@ -174,14 +174,14 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="meshLoader.cpp" />
     <ClCompile Include="MovableCamera.cpp" />
-    <ClCompile Include="roomDemo.cpp" />
+    <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gk2ExampleBase.h" />
     <ClInclude Include="meshLoader.h" />
     <ClInclude Include="MovableCamera.h" />
     <ClInclude Include="PhongEffect.h" />
-    <ClInclude Include="roomDemo.h" />
+    <ClInclude Include="Scene.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="phongPS.hlsl">

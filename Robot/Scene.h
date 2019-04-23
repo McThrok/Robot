@@ -27,20 +27,26 @@ namespace mini::gk2
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbSurfaceColor;	//pixel shader constant buffer slot 0
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
 
-		Mesh m_floor; //uses m_floorMtx
-		Mesh m_puma; //uses m_pumaMtx
+		double angle = 0;
 
-		DirectX::XMFLOAT4X4 m_projMtx, m_floorMtx, m_pumaMtx;
+		Mesh m_floor; //uses m_floorMtx
+		Mesh m_plate[2]; //uses m_plateMtx
+		Mesh m_puma[6]; //uses m_pumaMtx
+
+		DirectX::XMFLOAT4X4 m_projMtx, m_floorMtx, m_plateMtx[2], m_pumaMtx[6];
 
 		dx_ptr<ID3D11RasterizerState> m_rsCullNone;
 		dx_ptr<ID3D11BlendState> m_bsAlpha;
 		dx_ptr<ID3D11DepthStencilState> m_dssNoWrite;
-
 		dx_ptr<ID3D11InputLayout> m_inputlayout;
 
 		PhongEffect m_phongEffect;
 
 		void UpdateCameraCB();
+		void UpdateRobotMtx(float dt);
+		void InverseKinematics(DirectX::XMVECTOR pos, DirectX::XMVECTOR normal, 
+			float &a1, float &a2, float &a3, float &a4, float &a5);
+		
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
 		void SetWorldMtx(DirectX::XMFLOAT4X4 mtx);
 		void DrawScene();
