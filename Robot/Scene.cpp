@@ -172,35 +172,15 @@ void Scene::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
 	m.Render(m_device.context());
 }
 
-void mini::gk2::Scene::DrawMirroredWorld()
-{
-	m_device.context()->OMSetDepthStencilState(m_dssWrite.get(), 1);
-	DrawPlateFront();
-	m_device.context()->OMSetDepthStencilState(m_dssTest.get(), 1);
-	m_device.context()->RSSetState(m_rsCCW.get());
-
-	XMMATRIX m_view = m_camera.getViewMatrix();
-	XMFLOAT4X4 new_view;
-	XMStoreFloat4x4(&new_view, XMLoadFloat4x4(&m_mirrorMtx) * m_view);
-	UpdateCameraCB(new_view);
-
-	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-
-	DrawPuma();
-	DrawFloor();
-	DrawPlateFront();
-
-	m_device.context()->RSSetState(nullptr);
-	XMFLOAT4X4 old_view;
-	XMStoreFloat4x4(&old_view, m_view);
-	UpdateCameraCB(old_view);
-	m_device.context()->OMSetDepthStencilState(nullptr, 0);
-}
-
 void Scene::Render()
 {
 	Gk2ExampleBase::Render();
-	DrawMirroredWorld();
+
+	XMMATRIX m_view = m_camera.getViewMatrix();
+	SetupSceneToDrawMirroredWorld(m_view);
+	DrawPuma();
+	DrawFloor();
+	RestoreScene(m_view);
 
 	m_cbSurfaceColor.Update(m_device.context(), MIRROR_COLOR);
 	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
@@ -213,6 +193,29 @@ void Scene::Render()
 	DrawPuma();
 	DrawFloor();
 	DrawPlateBack();
+}
+
+void mini::gk2::Scene::SetupSceneToDrawMirroredWorld(XMMATRIX m_view)
+{
+	m_device.context()->OMSetDepthStencilState(m_dssWrite.get(), 1);
+	DrawPlateFront();
+	m_device.context()->OMSetDepthStencilState(m_dssTest.get(), 1);
+	m_device.context()->RSSetState(m_rsCCW.get());
+
+	XMFLOAT4X4 new_view;
+	XMStoreFloat4x4(&new_view, XMLoadFloat4x4(&m_mirrorMtx) * m_view);
+	UpdateCameraCB(new_view);
+
+	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
+void mini::gk2::Scene::RestoreScene(XMMATRIX m_view)
+{
+	XMFLOAT4X4 old_view;
+	XMStoreFloat4x4(&old_view, m_view);
+	UpdateCameraCB(old_view);
+	m_device.context()->RSSetState(nullptr);
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 }
 
 void Scene::DrawPuma()
