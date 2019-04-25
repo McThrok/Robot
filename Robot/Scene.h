@@ -5,6 +5,7 @@
 #include "PhongEffect.h"
 #include "PhongShadowEffect.h"
 #include "PumaData.h"
+#include <DirectXMath.h>
 #include "Edge.h"
 #include "TexturedEffect.h"
 
@@ -71,5 +72,8 @@ namespace mini::gk2
 		void DrawCylinder();
 		void DrawPlateFront();
 		void DrawPlateBack();
+		std::vector<Edge> GetContourEdges(int partIdx);
+		bool IsFrontFaceForLight (int partIdx, int tglIdx);
+		DirectX::XMVECTOR GetTriangleNormal(int partIdx, int tglIdx);
 	};
 }

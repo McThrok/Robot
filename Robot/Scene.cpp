@@ -82,6 +82,7 @@ Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"R
 	{
 		wstring path = L"resources/puma/mesh" + to_wstring(i + 1) + L".txt";
 		PumaData data = MeshLoader::LoadPumaMesh(path);
+		m_pumaData[i] = data;
 		m_puma[i] = m_device.CreateMesh(data.indices, data.verts);
 	}
 
@@ -292,13 +293,55 @@ void Scene::DrawPlateBack()
 
 	m_phongEffect.Begin(m_device.context());
 	DrawScene();
+	GetTriangleNormal(0, 0);
 }
 
 
-//XMFLOAT3  RoomDemo::GetTriangleNormal(int partIdx, int i) {
-//	return { 0,0,0 };
-//}
-//vector<Edge> RoomDemo::GetContourEdges(int partIdx)
-//{
-//	return { 0,0,0 };
-//}
+XMVECTOR RoomDemo::GetTriangleNormal(int partIdx, int tglIdx) {
+	PumaData & part = m_pumaData[partIdx];
+	XMVECTOR p1 = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx]].position);
+	XMVECTOR p2 = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx + 1]].position);
+	XMVECTOR p3 = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx + 2]].position);
+
+	XMVECTOR v = p2 - p1;
+	XMVECTOR w = p3 - p1;
+
+	XMVECTOR norm = XMVector3Normalize(XMVector3Cross(w, v));
+
+	return norm;
+}
+
+bool RoomDemo::IsFrontFaceForLight(int partIdx, int tglIdx) {
+	PumaData & part = m_pumaData[partIdx];
+
+	XMVECTOR tglVert = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx]].position);
+	XMVECTOR lightPos = XMLoadFloat4(&LIGHT_POS);//from float4! - can cause prblems?
+	XMVECTOR lightVec = lightPos - tglVert;
+
+	XMVECTOR norm = GetTriangleNormal(partIdx, tglIdx);
+
+	XMFLOAT3 dot;
+	XMStoreFloat3(&dot, XMVector3Dot(lightVec, norm));
+	bool front = dot.x > 0; //x=y=z
+
+	return front;
+}
+
+vector<Edge> RoomDemo::GetContourEdges(int partIdx)
+{
+	PumaData & part = m_pumaData[partIdx];
+	vector<Edge> contour;
+
+	int n = part.edges.size();
+	for (size_t i = 0; i < n; i++)
+	{
+		Edge e = part.edges[i];
+		bool isFront1 = IsFrontFaceForLight(partIdx, e.TriangleIdxA);
+		bool isFront2 = IsFrontFaceForLight(partIdx, e.TriangleIdxB);
+
+		if (isFront1^isFront2)
+			contour.push_back(e);
+	}
+
+	return contour;
+}
