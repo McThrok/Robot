@@ -201,7 +201,7 @@ MeshLoader::vpn_mesh_t MeshLoader::LoadMesh(const std::wstring& fileName)
 	return{ move(verts), move(inds) };
 }
 
-MeshLoader::vpne_mesh_t MeshLoader::LoadPumaMesh(const std::wstring& fileName)
+PumaData MeshLoader::LoadPumaMesh(const std::wstring& fileName)
 {
 	ifstream input;
 	input.exceptions(ios::badbit | ios::failbit | ios::eofbit);

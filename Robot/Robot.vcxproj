@@ -177,12 +177,11 @@
     <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Edge.h" />
+    <ClInclude Include="PumaData.h" />
     <ClInclude Include="gk2ExampleBase.h" />
     <ClInclude Include="meshLoader.h" />
     <ClInclude Include="MovableCamera.h" />
     <ClInclude Include="PhongEffect.h" />
-    <ClInclude Include="PhongShadowEffect.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="TexturedEffect.h" />
   </ItemGroup>

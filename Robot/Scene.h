@@ -4,6 +4,7 @@
 #include "mesh.h"
 #include "PhongEffect.h"
 #include "PhongShadowEffect.h"
+#include "PumaData.h"
 #include "Edge.h"
 #include "TexturedEffect.h"
 
@@ -40,6 +41,7 @@ namespace mini::gk2
 		Mesh m_wall; //uses m_wallsMtx[6]
 		Mesh m_plate[2]; //uses m_plateMtx
 		Mesh m_puma[6]; //uses m_pumaMtx
+		PumaData m_pumaData[6]; //uses m_pumaMtx
 		Mesh m_cylinder; //uses m_cylinderMtx
 		
 		dx_ptr<ID3D11DepthStencilState> m_dssWrite;
