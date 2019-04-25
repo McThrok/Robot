@@ -293,7 +293,6 @@ void Scene::DrawPlateBack()
 
 	m_phongEffect.Begin(m_device.context());
 	DrawScene();
-	GetTriangleNormal(0, 0);
 }
 
 
