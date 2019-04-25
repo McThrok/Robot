@@ -81,8 +81,9 @@ Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"R
 	for (size_t i = 0; i < 6; i++)
 	{
 		wstring path = L"resources/puma/mesh" + to_wstring(i + 1) + L".txt";
-		tie(vertices, indices) = MeshLoader::LoadPumaMesh(path);
+		tie(vertices, indices, edges) = MeshLoader::LoadPumaMesh(path);
 		m_puma[i] = m_device.CreateMesh(indices, vertices);
+		m_pumaEdges[i] = edges;
 	}
 
 	for (size_t i = 0; i < 6; i++)

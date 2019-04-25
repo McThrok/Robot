@@ -1,5 +1,6 @@
 #pragma once
 #include "vertexDef.h"
+#include "Edge.h"
 #include <tuple>
 #include <vector>
 
@@ -13,6 +14,10 @@ namespace mini
 		using indices_t = std::vector<unsigned short>;
 		using vpn_mesh_t = std::tuple<vpn_verts_t, indices_t>;
 		using vp_mesh_t = std::tuple<vp_verts_t, indices_t>;
+		using edges_t = std::vector<Edge>;
+		using vpne_mesh_t = std::tuple<vpn_verts_t, indices_t, edges_t>;
+
+		using edge = std::tuple<vpn_verts_t, indices_t>;
 
 		static vpn_mesh_t CreateBox(float side = 1.0f)
 		{
@@ -41,7 +46,7 @@ namespace mini
 		static vpn_mesh_t CreateCylinder(float radius, float height, int r_count);
 
 		static vpn_mesh_t LoadMesh(const std::wstring& fileName);
-		static vpn_mesh_t LoadPumaMesh(const std::wstring& fileName);
+		static vpne_mesh_t LoadPumaMesh(const std::wstring& fileName);
 
 	private:
 

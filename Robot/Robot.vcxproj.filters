@@ -56,6 +56,9 @@
     <ClInclude Include="PhongShadowEffect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Edge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="PhongEffect.h">
       <Filter>Header Files\Effects</Filter>
     </ClInclude>

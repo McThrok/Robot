@@ -4,6 +4,7 @@
 #include "mesh.h"
 #include "PhongEffect.h"
 #include "PhongShadowEffect.h"
+#include "Edge.h"
 #include "TexturedEffect.h"
 
 namespace mini::gk2
