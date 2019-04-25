@@ -52,8 +52,7 @@ namespace mini::gk2
 			float &a1, float &a2, float &a3, float &a4, float &a5);
 		
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
-		void SetupSceneToDrawMirroredWorld(DirectX::XMMATRIX m_view);
-		void RestoreScene(DirectX::XMMATRIX m_view);
+		void DrawMirroredWorld(DirectX::XMMATRIX m_view);
 		void DrawPuma();
 		void DrawFloor();
 		void DrawPlateFront();
