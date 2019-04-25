@@ -3,6 +3,7 @@
 #include "constantBuffer.h"
 #include "mesh.h"
 #include "PhongEffect.h"
+#include "PhongShadowEffect.h"
 #include "TexturedEffect.h"
 
 namespace mini::gk2
@@ -50,6 +51,7 @@ namespace mini::gk2
 		DirectX::XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx, m_cylinderMtx;
 
 		PhongEffect m_phongEffect;
+		PhongShadowEffect m_phongShadowEffect;
 		TexturedEffect m_mirrorTexturedEffect;
 
 		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;

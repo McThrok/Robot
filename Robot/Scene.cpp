@@ -94,6 +94,8 @@ Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"R
 
 	m_phongEffect = PhongEffect(m_device.CreateVertexShader(vsCode), m_device.CreatePixelShader(psCode),
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbLightPos, m_cbSurfaceColor);
+
+
 	m_inputlayout = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
 
 	// Mirror texture
@@ -288,4 +290,8 @@ void Scene::DrawPlateFront()
 void Scene::DrawPlateBack()
 {
 	DrawMesh(m_plate[1], m_plateMtx[1]);
+}
+
+	m_phongEffect.Begin(m_device.context());
+	DrawScene();
 }
