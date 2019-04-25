@@ -6,10 +6,11 @@
 
 namespace mini::gk2
 {
-	class RoomDemo : public Gk2ExampleBase
+	class Scene : public Gk2ExampleBase
 	{
 	public:
-		explicit RoomDemo(HINSTANCE appInstance);
+		explicit Scene(HINSTANCE appInstance);
+		void CreateRenderStates();
 
 	protected:
 		void Update(const Clock& dt) override;
@@ -17,8 +18,9 @@ namespace mini::gk2
 
 	private:
 #pragma region CONSTANTS
-
 		static const DirectX::XMFLOAT4 LIGHT_POS;
+		static const DirectX::XMFLOAT4 MIRROR_COLOR;
+		static const unsigned int BS_MASK;
 #pragma endregion
 
 		ConstantBuffer<DirectX::XMFLOAT4X4> m_cbWorldMtx, //vertex shader constant buffer slot 0
@@ -32,23 +34,28 @@ namespace mini::gk2
 		Mesh m_floor; //uses m_floorMtx
 		Mesh m_plate[2]; //uses m_plateMtx
 		Mesh m_puma[6]; //uses m_pumaMtx
+		
+		dx_ptr<ID3D11DepthStencilState> m_dssWrite;
+		dx_ptr<ID3D11DepthStencilState> m_dssTest;
+		dx_ptr<ID3D11RasterizerState> m_rsCCW;
+		dx_ptr<ID3D11BlendState> m_bsAlpha;
+		dx_ptr<ID3D11InputLayout> m_inputlayout;
 
 		DirectX::XMFLOAT4X4 m_projMtx, m_floorMtx, m_plateMtx[2], m_pumaMtx[6];
-
-		dx_ptr<ID3D11RasterizerState> m_rsCullNone;
-		dx_ptr<ID3D11BlendState> m_bsAlpha;
-		dx_ptr<ID3D11DepthStencilState> m_dssNoWrite;
-		dx_ptr<ID3D11InputLayout> m_inputlayout;
+		DirectX::XMFLOAT4X4 m_mirrorMtx;
 
 		PhongEffect m_phongEffect;
 
-		void UpdateCameraCB();
+		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
 		void UpdateRobotMtx(float dt);
 		void InverseKinematics(DirectX::XMVECTOR pos, DirectX::XMVECTOR normal, 
 			float &a1, float &a2, float &a3, float &a4, float &a5);
 		
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
-		void SetWorldMtx(DirectX::XMFLOAT4X4 mtx);
-		void DrawScene();
+		void DrawMirroredWorld(DirectX::XMMATRIX m_view);
+		void DrawPuma();
+		void DrawFloor();
+		void DrawPlateFront();
+		void DrawPlateBack();
 	};
 }
