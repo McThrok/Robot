@@ -1,4 +1,4 @@
-﻿#include <array>
+#include <array>
 #include "Scene.h"
 #include "meshLoader.h"
 #include <DirectXMath.h>
@@ -336,7 +336,7 @@ vector<Edge> Scene::GetContourEdges(int partIdx, XMVECTOR &light)
 		bool isFrontDown = IsFrontFaceForLight(partIdx, e.TriangleIdxDown, light);
 
 		if (isFrontTop^isFrontDown) {
-			if (isFrontTop) //ensure clockwise, 
+			if (isFrontTop) //ensure counterclockwise, 
 				e.Flip();
 			contour.push_back(e);
 		}
@@ -368,7 +368,7 @@ XMVECTOR Scene::GetTriangleNormal(XMFLOAT3 a, XMFLOAT3 b, XMFLOAT3 c) {
 	XMVECTOR v = p2 - p1;
 	XMVECTOR w = p3 - p1;
 
-	XMVECTOR norm =  XMVector3Normalize(XMVector3Cross(v, w));// not w,v cuz of LH coords
+	XMVECTOR norm = XMVector3Normalize(XMVector3Cross(v, w));
 
 	return norm;
 }
@@ -384,24 +384,24 @@ XMVECTOR Scene::GetTriangleNormal(int partIdx, int tglIdx) {
 
 void Scene::AddVolumeTrapezoid(Edge &e, XMVECTOR &light, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices)
 {
-	XMVECTOR left = XMLoadFloat3(&e.PositionLeft);
 	XMVECTOR right = XMLoadFloat3(&e.PositionRight);
-
-	XMFLOAT3 leftBack;
-	XMStoreFloat3(&leftBack, VOLUME_OFFSET * XMVector3Normalize(left - light) + left);
+	XMVECTOR left = XMLoadFloat3(&e.PositionLeft);
 
 	XMFLOAT3 rightBack;
 	XMStoreFloat3(&rightBack, VOLUME_OFFSET * XMVector3Normalize(right - light) + right);
 
+	XMFLOAT3 leftBack;
+	XMStoreFloat3(&leftBack, VOLUME_OFFSET * XMVector3Normalize(left - light) + left);
+
 	XMFLOAT3 normal;
-	XMStoreFloat3(&normal, GetTriangleNormal(e.PositionLeft, leftBack, rightBack));
+	XMStoreFloat3(&normal, GetTriangleNormal(e.PositionRight, rightBack, leftBack));
 
 	int n = vertices.size();
 
-	vertices.push_back({ e.PositionLeft, normal });
-	vertices.push_back({ leftBack, normal });
-	vertices.push_back({ rightBack, normal });
 	vertices.push_back({ e.PositionRight, normal });
+	vertices.push_back({ rightBack, normal });
+	vertices.push_back({ leftBack, normal });
+	vertices.push_back({ e.PositionLeft, normal });
 
 	indices.push_back(n + 0);
 	indices.push_back(n + 1);

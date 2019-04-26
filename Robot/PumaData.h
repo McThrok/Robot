@@ -8,8 +8,8 @@
 namespace mini
 {
 	struct Edge {
-		DirectX::XMFLOAT3 PositionLeft;
 		DirectX::XMFLOAT3 PositionRight;
+		DirectX::XMFLOAT3 PositionLeft;
 		unsigned short TriangleIdxTop;
 		unsigned short TriangleIdxDown;
 
