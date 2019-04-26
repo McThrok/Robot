@@ -148,6 +148,9 @@ void Scene::Update(const Clock& c)
 	double dt = c.getFrameTime();
 	HandleCameraInput(dt);
 	UpdateRobotMtx(dt);
+
+	for (size_t i = 1; i < 6; i++)
+		UpdateShadowVolume(i);
 }
 
 void mini::gk2::Scene::UpdateRobotMtx(float dt)
@@ -299,6 +302,65 @@ void Scene::DrawPlateBack()
 }
 
 
+void RoomDemo::UpdateShadowVolume(int partIdx)
+{
+
+	vector<VertexPositionNormal> vertices;
+	vector<unsigned short> indices;
+
+	XMMATRIX invMat = XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_pumaMtx[partIdx]));
+	XMVECTOR light = XMVector3TransformCoord(XMLoadFloat4(&LIGHT_POS), invMat);
+
+	vector<Edge> edges = GetContourEdges(partIdx, light);
+
+	int n = edges.size();
+	for (size_t i = 0; i < n; i++)
+		AddVolumeTrapezoid(edges[i], light, vertices, indices);
+
+	int tglCount = m_pumaData[partIdx].indices.size() / 3;
+	for (size_t i = 0; i < tglCount; i++)
+		AddVolumeCupTriangle(partIdx, i, light, vertices, indices);
+
+	m_pumaShadow[partIdx] = m_device.CreateMesh(indices, vertices);
+}
+
+vector<Edge> RoomDemo::GetContourEdges(int partIdx, XMVECTOR &light)
+{
+	PumaData & part = m_pumaData[partIdx];
+	vector<Edge> contour;
+
+	int n = part.edges.size();
+	for (size_t i = 0; i < n; i++)
+	{
+		Edge &e = part.edges[i];
+		bool isFrontTop = IsFrontFaceForLight(partIdx, e.TriangleIdxTop, light);
+		bool isFrontDown = IsFrontFaceForLight(partIdx, e.TriangleIdxDown, light);
+
+		if (isFrontTop^isFrontDown) {
+			if (isFrontTop) //ensure clockwise, 
+				e.Flip();
+			contour.push_back(e);
+		}
+	}
+
+	return contour;
+}
+
+bool RoomDemo::IsFrontFaceForLight(int partIdx, int tglIdx, XMVECTOR &light) {
+	PumaData & part = m_pumaData[partIdx];
+
+	XMVECTOR tglVert = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx]].position);
+	XMVECTOR lightVec = light - tglVert;
+
+	XMVECTOR norm = GetTriangleNormal(partIdx, tglIdx);
+
+	XMFLOAT3 dot;
+	XMStoreFloat3(&dot, XMVector3Dot(lightVec, norm));
+	bool front = dot.x >= 0; //x=y=z
+
+	return front;
+}
+
 XMVECTOR RoomDemo::GetTriangleNormal(XMFLOAT3 a, XMFLOAT3 b, XMFLOAT3 c) {
 	XMVECTOR p1 = XMLoadFloat3(&a);
 	XMVECTOR p2 = XMLoadFloat3(&b);
@@ -307,7 +369,7 @@ XMVECTOR RoomDemo::GetTriangleNormal(XMFLOAT3 a, XMFLOAT3 b, XMFLOAT3 c) {
 	XMVECTOR v = p2 - p1;
 	XMVECTOR w = p3 - p1;
 
-	XMVECTOR norm = XMVector3Normalize(XMVector3Cross(w, v));
+	XMVECTOR norm =  XMVector3Normalize(XMVector3Cross(v, w));// not w,v cuz of LH coords
 
 	return norm;
 }
@@ -321,92 +383,10 @@ XMVECTOR RoomDemo::GetTriangleNormal(int partIdx, int tglIdx) {
 	return GetTriangleNormal(a, b, c);
 }
 
-bool RoomDemo::IsFrontFaceForLight(int partIdx, int tglIdx) {
-	PumaData & part = m_pumaData[partIdx];
-
-	XMVECTOR tglVert = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx]].position);
-	XMVECTOR lightPos = XMLoadFloat4(&LIGHT_POS);
-	XMVECTOR lightVec = lightPos - tglVert;
-
-	XMVECTOR norm = GetTriangleNormal(partIdx, tglIdx);
-
-	XMFLOAT3 dot;
-	XMStoreFloat3(&dot, XMVector3Dot(lightVec, norm));
-	bool front = dot.x >= 0; //x=y=z
-
-	return front;
-}
-
-vector<Edge> RoomDemo::GetContourEdges(int partIdx)
-{
-	PumaData & part = m_pumaData[partIdx];
-	vector<Edge> contour;
-
-	int n = part.edges.size();
-	for (size_t i = 0; i < n; i++)
-	{
-		Edge &e = part.edges[i];
-		bool isFrontTop = IsFrontFaceForLight(partIdx, e.TriangleIdxTop);
-		bool isFrontDown = IsFrontFaceForLight(partIdx, e.TriangleIdxDown);
-
-		if (isFrontTop^isFrontDown) {
-			if (isFrontTop) //ensure clockwise, 
-				e.Flip();
-			contour.push_back(e);
-		}
-	}
-
-	return contour;
-}
-
-vector<unsigned short> SortEdges(std::vector<Edge>& edges)
-{
-	vector<unsigned short> cycleEnds;//not needed
-	int n = edges.size();
-
-	for (size_t i = 0; i < n - 1; i++)
-	{
-		bool found = false;
-		for (size_t j = i + 1; j < n; j++)
-		{
-			if (edges[i].PositionRight.x == edges[j].PositionLeft.x
-				&& edges[i].PositionRight.y == edges[j].PositionLeft.y
-				&& edges[i].PositionRight.z == edges[j].PositionLeft.z) {
-
-				found = true;
-				std::swap(edges[i + 1], edges[j]);
-				break;
-			}
-		}
-
-		if (!found) //cycle
-			cycleEnds.push_back(i);
-	}
-	cycleEnds.push_back(n - 1);
-
-	return cycleEnds;
-}
-
-void RoomDemo::UpdateShadowVolume(int partIdx)
-{
-	vector<Edge> edges = GetContourEdges(partIdx);
-	SortEdges(edges);
-
-	vector<VertexPositionNormal> vertices;
-	vector<unsigned short> indices;
-
-	int n = edges.size();
-	for (size_t i = 0; i < n; i++)
-		AddVolumeTrapezoid(edges[i], vertices, indices);
-
-	m_pumaShadow[partIdx] = m_device.CreateMesh(indices, vertices);
-}
-
-void RoomDemo::AddVolumeTrapezoid(Edge &e, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices)
+void RoomDemo::AddVolumeTrapezoid(Edge &e, XMVECTOR &light, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices)
 {
 	XMVECTOR left = XMLoadFloat3(&e.PositionLeft);
 	XMVECTOR right = XMLoadFloat3(&e.PositionRight);
-	XMVECTOR light = XMLoadFloat4(&LIGHT_POS);
 
 	XMFLOAT3 leftBack;
 	XMStoreFloat3(&leftBack, VOLUME_OFFSET * XMVector3Normalize(left - light) + left);
@@ -430,12 +410,34 @@ void RoomDemo::AddVolumeTrapezoid(Edge &e, vector<VertexPositionNormal>& vertice
 	indices.push_back(n + 0);
 	indices.push_back(n + 2);
 	indices.push_back(n + 3);
+}
 
-	//test
-	indices.push_back(n + 0);
-	indices.push_back(n + 2);
-	indices.push_back(n + 1);
-	indices.push_back(n + 0);
-	indices.push_back(n + 3);
-	indices.push_back(n + 2);
+void RoomDemo::AddVolumeCupTriangle(int partIdx, int tglIdx, XMVECTOR &light, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices) {
+	PumaData & part = m_pumaData[partIdx];
+
+	int n = vertices.size();
+	for (size_t i = 0; i < 3; i++)
+		indices.push_back(n + i);
+
+	VertexPositionNormal a = part.verts[part.indices[3 * tglIdx]];
+	VertexPositionNormal b = part.verts[part.indices[3 * tglIdx + 1]];
+	VertexPositionNormal c = part.verts[part.indices[3 * tglIdx + 2]];
+
+	if (IsFrontFaceForLight(partIdx, tglIdx, light)) {
+		vertices.push_back(a);
+		vertices.push_back(b);
+		vertices.push_back(c);
+	}
+	else {
+		vertices.push_back({ MoveAlongLight(light, a.position), a.normal });
+		vertices.push_back({ MoveAlongLight(light, b.position), b.normal });
+		vertices.push_back({ MoveAlongLight(light, c.position), c.normal });
+	}
+}
+
+XMFLOAT3 RoomDemo::MoveAlongLight(XMVECTOR & light, XMFLOAT3 position)
+{
+	XMVECTOR pos = XMLoadFloat3(&position);
+	XMStoreFloat3(&position, VOLUME_OFFSET * XMVector3Normalize(pos - light) + pos);
+	return position;
 }

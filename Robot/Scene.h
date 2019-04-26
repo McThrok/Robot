@@ -9,6 +9,9 @@
 #include "Edge.h"
 #include "TexturedEffect.h"
 
+using namespace DirectX;
+using namespace std;
+
 namespace mini::gk2
 {
 	class Scene : public Gk2ExampleBase
@@ -23,7 +26,8 @@ namespace mini::gk2
 
 	private:
 #pragma region CONSTANTS
-		static const DirectX::XMFLOAT4 LIGHT_POS;
+
+		static const XMFLOAT4 LIGHT_POS;
 		static const float VOLUME_OFFSET;
 		static const DirectX::XMFLOAT4 MIRROR_COLOR;
 		static const unsigned int BS_MASK;
@@ -32,7 +36,7 @@ namespace mini::gk2
 		static const DirectX::XMFLOAT4 WALLS_COLORS[6];
 #pragma endregion
 
-		ConstantBuffer<DirectX::XMFLOAT4X4> m_cbWorldMtx, //vertex shader constant buffer slot 0
+		ConstantBuffer<XMFLOAT4X4> m_cbWorldMtx, //vertex shader constant buffer slot 0
 			m_cbProjMtx;	//vertex shader constant buffer slot 2 & geometry shader constant buffer slot 0
 		ConstantBuffer<DirectX::XMFLOAT4X4, 2> m_cbViewMtx; //vertex shader constant buffer slot 1
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbSurfaceColor;	//pixel shader constant buffer slot 0
@@ -65,7 +69,7 @@ namespace mini::gk2
 
 		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
 		void UpdateRobotMtx(float dt);
-		void InverseKinematics(DirectX::XMVECTOR pos, DirectX::XMVECTOR normal,
+		void InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 			float &a1, float &a2, float &a3, float &a4, float &a5);
 
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
@@ -80,7 +84,12 @@ namespace mini::gk2
 		DirectX::XMVECTOR GetTriangleNormal(DirectX::XMFLOAT3 a, DirectX::XMFLOAT3 b, DirectX::XMFLOAT3 c);
 		DirectX::XMVECTOR GetTriangleNormal(int partIdx, int tglIdx);
 		void UpdateShadowVolume(int partIdx);
-		//std::vector<unsigned short> SortEdges(std::vector<Edge> &edges);
-		void AddVolumeTrapezoid(Edge &e, std::vector<VertexPositionNormal> &vertices, std::vector<unsigned short> &indices);
+		vector<Edge> GetContourEdges(int partIdx, XMVECTOR &light);
+		bool IsFrontFaceForLight(int partIdx, int tglIdx, XMVECTOR &light);
+		XMVECTOR GetTriangleNormal(XMFLOAT3 a, XMFLOAT3 b, XMFLOAT3 c);
+		XMVECTOR GetTriangleNormal(int partIdx, int tglIdx);
+		void AddVolumeTrapezoid(Edge &e, XMVECTOR &light, vector<VertexPositionNormal> &vertices, vector<unsigned short> &indices);
+		void AddVolumeCupTriangle(int partIdx, int tglIdx, XMVECTOR &light, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices);
+		XMFLOAT3 MoveAlongLight(XMVECTOR & light, XMFLOAT3 position);
 	};
 }
