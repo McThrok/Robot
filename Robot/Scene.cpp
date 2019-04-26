@@ -1,6 +1,7 @@
 ﻿#include <array>
 #include "Scene.h"
 #include "meshLoader.h"
+#include <DirectXMath.h>
 
 using namespace mini;
 using namespace utils;
@@ -9,6 +10,8 @@ using namespace DirectX;
 using namespace std;
 
 const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
+const float RoomDemo::VOLUME_OFFSET = 10.0f;
+const XMFLOAT4 Scene::MIRROR_COLOR = { XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f) };
 const unsigned int Scene::BS_MASK = 0xffffffff;
 const XMFLOAT4 Scene::WHITE_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
 const XMFLOAT4 Scene::PUMA_COLOR = { 125.0f / 255.0f, 167.0f / 255.0f, 216.0f / 255.0f, 100.0f / 255.0f };
@@ -296,11 +299,10 @@ void Scene::DrawPlateBack()
 }
 
 
-XMVECTOR RoomDemo::GetTriangleNormal(int partIdx, int tglIdx) {
-	PumaData & part = m_pumaData[partIdx];
-	XMVECTOR p1 = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx]].position);
-	XMVECTOR p2 = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx + 1]].position);
-	XMVECTOR p3 = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx + 2]].position);
+XMVECTOR RoomDemo::GetTriangleNormal(XMFLOAT3 a, XMFLOAT3 b, XMFLOAT3 c) {
+	XMVECTOR p1 = XMLoadFloat3(&a);
+	XMVECTOR p2 = XMLoadFloat3(&b);
+	XMVECTOR p3 = XMLoadFloat3(&c);
 
 	XMVECTOR v = p2 - p1;
 	XMVECTOR w = p3 - p1;
@@ -310,18 +312,27 @@ XMVECTOR RoomDemo::GetTriangleNormal(int partIdx, int tglIdx) {
 	return norm;
 }
 
+XMVECTOR RoomDemo::GetTriangleNormal(int partIdx, int tglIdx) {
+	PumaData & part = m_pumaData[partIdx];
+	XMFLOAT3 a = part.verts[part.indices[3 * tglIdx]].position;
+	XMFLOAT3 b = part.verts[part.indices[3 * tglIdx + 1]].position;
+	XMFLOAT3 c = part.verts[part.indices[3 * tglIdx + 2]].position;
+
+	return GetTriangleNormal(a, b, c);
+}
+
 bool RoomDemo::IsFrontFaceForLight(int partIdx, int tglIdx) {
 	PumaData & part = m_pumaData[partIdx];
 
 	XMVECTOR tglVert = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx]].position);
-	XMVECTOR lightPos = XMLoadFloat4(&LIGHT_POS);//from float4! - can cause prblems?
+	XMVECTOR lightPos = XMLoadFloat4(&LIGHT_POS);
 	XMVECTOR lightVec = lightPos - tglVert;
 
 	XMVECTOR norm = GetTriangleNormal(partIdx, tglIdx);
 
 	XMFLOAT3 dot;
 	XMStoreFloat3(&dot, XMVector3Dot(lightVec, norm));
-	bool front = dot.x > 0; //x=y=z
+	bool front = dot.x >= 0; //x=y=z
 
 	return front;
 }
@@ -334,13 +345,87 @@ vector<Edge> RoomDemo::GetContourEdges(int partIdx)
 	int n = part.edges.size();
 	for (size_t i = 0; i < n; i++)
 	{
-		Edge e = part.edges[i];
-		bool isFront1 = IsFrontFaceForLight(partIdx, e.TriangleIdxA);
-		bool isFront2 = IsFrontFaceForLight(partIdx, e.TriangleIdxB);
+		Edge &e = part.edges[i];
+		bool isFrontTop = IsFrontFaceForLight(partIdx, e.TriangleIdxTop);
+		bool isFrontDown = IsFrontFaceForLight(partIdx, e.TriangleIdxDown);
 
-		if (isFront1^isFront2)
+		if (isFrontTop^isFrontDown) {
+			if (isFrontTop) //ensure clockwise, 
+				e.Flip();
 			contour.push_back(e);
+		}
 	}
 
 	return contour;
 }
+
+Mesh RoomDemo::GetShadowVolume(int partIdx)
+{
+	vector<Edge> edges = GetContourEdges(partIdx);
+	//vector<unsigned short> cycleEnds = SortEdges(edges);
+
+	vector<VertexPositionNormal> vertices;
+	vector<unsigned short> indices;
+
+	int n = edges.size();
+	for (size_t i = 0; i < n; i++)
+		AddVolumeTrapezoid(edges[i], vertices, indices);
+
+	return  m_device.CreateMesh(vertices, indices);
+}
+
+void RoomDemo::AddVolumeTrapezoid(Edge &e, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices)
+{
+	XMVECTOR left = XMLoadFloat3(&e.PositionLeft);
+	XMVECTOR right = XMLoadFloat3(&e.PositionRight);
+	XMVECTOR light = XMLoadFloat4(&LIGHT_POS);
+
+	XMFLOAT3 leftBack;
+	XMStoreFloat3(&leftBack, VOLUME_OFFSET * XMVector3Normalize(left - light));
+
+	XMFLOAT3 rightBack;
+	XMStoreFloat3(&rightBack, VOLUME_OFFSET * XMVector3Normalize(right - light));
+
+	XMFLOAT3 normal;
+	XMStoreFloat3(&normal, GetTriangleNormal(e.PositionLeft, leftBack, rightBack));
+
+	int n = indices.size();
+	for (size_t i = 0; i < 6; i++)
+		indices.push_back(n + i);
+
+	vertices.push_back({ e.PositionLeft,normal });
+	vertices.push_back({ leftBack,normal });
+	vertices.push_back({ rightBack,normal });
+
+	vertices.push_back({ e.PositionLeft,normal });
+	vertices.push_back({ rightBack,normal });
+	vertices.push_back({ e.PositionRight,normal });
+}
+
+//vector<unsigned short> RoomDemo::SortEdges(std::vector<Edge>& edges)
+//{
+//	vector<unsigned short> cycleEnds;//not needed
+//	int n = edges.size();
+//
+//	for (size_t i = 0; i < n - 1; i++)
+//	{
+//		bool found = false;
+//		for (size_t j = i + 1; j < n; j++)
+//		{
+//			if (edges[i].PositionRight.x == edges[j].PositionLeft.x
+//				&& edges[i].PositionRight.y == edges[j].PositionLeft.y
+//				&& edges[i].PositionRight.z == edges[j].PositionLeft.z) {
+//
+//				found = true;
+//				std::swap(edges[i + 1], edges[j]);
+//				break;
+//			}
+//		}
+//
+//		if (!found) //cycle
+//			cycleEnds.push_back(i);
+//	}
+//	cycleEnds.push_back(n - 1);
+//
+//	return cycleEnds;
+//}

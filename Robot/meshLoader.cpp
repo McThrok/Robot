@@ -243,13 +243,13 @@ PumaData MeshLoader::LoadPumaMesh(const std::wstring& fileName)
 		Edge e;
 
 		input >> vert_nr;
-		e.PositionA = vertices[vert_nr];
+		e.PositionLeft = vertices[vert_nr];
 
 		input >> vert_nr;
-		e.PositionB = vertices[vert_nr];
+		e.PositionRight = vertices[vert_nr];
 
-		input >> e.TriangleIdxA;
-		input >> e.TriangleIdxB;
+		input >> e.TriangleIdxTop;
+		input >> e.TriangleIdxDown;
 
 		edges[i] = e;
 	}

@@ -8,10 +8,15 @@
 namespace mini
 {
 	struct Edge {
-		DirectX::XMFLOAT3 PositionA;
-		DirectX::XMFLOAT3 PositionB;
-		unsigned short TriangleIdxA;
-		unsigned short TriangleIdxB;
+		DirectX::XMFLOAT3 PositionLeft;
+		DirectX::XMFLOAT3 PositionRight;
+		unsigned short TriangleIdxTop;
+		unsigned short TriangleIdxDown;
+
+		void Flip() {
+			std::swap(TriangleIdxDown, TriangleIdxTop);
+			std::swap(PositionLeft, PositionRight);
+		}
 	};
 
 	struct PumaData {

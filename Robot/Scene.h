@@ -24,6 +24,8 @@ namespace mini::gk2
 	private:
 #pragma region CONSTANTS
 		static const DirectX::XMFLOAT4 LIGHT_POS;
+		static const float VOLUME_OFFSET;
+		static const DirectX::XMFLOAT4 MIRROR_COLOR;
 		static const unsigned int BS_MASK;
 		static const DirectX::XMFLOAT4 WHITE_COLOR;
 		static const DirectX::XMFLOAT4 PUMA_COLOR;
@@ -62,9 +64,9 @@ namespace mini::gk2
 
 		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
 		void UpdateRobotMtx(float dt);
-		void InverseKinematics(DirectX::XMVECTOR pos, DirectX::XMVECTOR normal, 
+		void InverseKinematics(DirectX::XMVECTOR pos, DirectX::XMVECTOR normal,
 			float &a1, float &a2, float &a3, float &a4, float &a5);
-		
+
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
 		void DrawMirroredWorld(DirectX::XMMATRIX m_view);
 		void DrawPuma();
@@ -73,7 +75,11 @@ namespace mini::gk2
 		void DrawPlateFront();
 		void DrawPlateBack();
 		std::vector<Edge> GetContourEdges(int partIdx);
-		bool IsFrontFaceForLight (int partIdx, int tglIdx);
+		bool IsFrontFaceForLight(int partIdx, int tglIdx);
+		DirectX::XMVECTOR GetTriangleNormal(DirectX::XMFLOAT3 a, DirectX::XMFLOAT3 b, DirectX::XMFLOAT3 c);
 		DirectX::XMVECTOR GetTriangleNormal(int partIdx, int tglIdx);
+		Mesh GetShadowVolume(int partIdx);
+		//std::vector<unsigned short> SortEdges(std::vector<Edge> &edges);
+		void AddVolumeTrapezoid(Edge &e, std::vector<VertexPositionNormal> &vertices, std::vector<unsigned short> &indices);
 	};
 }
