@@ -301,10 +301,8 @@ void Scene::DrawPlateBack()
 	DrawScene();
 }
 
-
 void RoomDemo::UpdateShadowVolume(int partIdx)
 {
-
 	vector<VertexPositionNormal> vertices;
 	vector<unsigned short> indices;
 

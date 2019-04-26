@@ -68,6 +68,8 @@ namespace mini::gk2
 		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
 
 		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
+		dx_ptr<ID3D11DepthStencilState> m_dssShadow;
+		dx_ptr<ID3D11DepthStencilState> m_dssRender;
 		void UpdateRobotMtx(float dt);
 		void InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 			float &a1, float &a2, float &a3, float &a4, float &a5);
@@ -79,10 +81,6 @@ namespace mini::gk2
 		void DrawCylinder();
 		void DrawPlateFront();
 		void DrawPlateBack();
-		std::vector<Edge> GetContourEdges(int partIdx);
-		bool IsFrontFaceForLight(int partIdx, int tglIdx);
-		DirectX::XMVECTOR GetTriangleNormal(DirectX::XMFLOAT3 a, DirectX::XMFLOAT3 b, DirectX::XMFLOAT3 c);
-		DirectX::XMVECTOR GetTriangleNormal(int partIdx, int tglIdx);
 		void UpdateShadowVolume(int partIdx);
 		vector<Edge> GetContourEdges(int partIdx, XMVECTOR &light);
 		bool IsFrontFaceForLight(int partIdx, int tglIdx, XMVECTOR &light);
