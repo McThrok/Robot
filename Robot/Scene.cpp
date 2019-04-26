@@ -359,10 +359,38 @@ vector<Edge> RoomDemo::GetContourEdges(int partIdx)
 	return contour;
 }
 
-Mesh RoomDemo::GetShadowVolume(int partIdx)
+vector<unsigned short> SortEdges(std::vector<Edge>& edges)
+{
+	vector<unsigned short> cycleEnds;//not needed
+	int n = edges.size();
+
+	for (size_t i = 0; i < n - 1; i++)
+	{
+		bool found = false;
+		for (size_t j = i + 1; j < n; j++)
+		{
+			if (edges[i].PositionRight.x == edges[j].PositionLeft.x
+				&& edges[i].PositionRight.y == edges[j].PositionLeft.y
+				&& edges[i].PositionRight.z == edges[j].PositionLeft.z) {
+
+				found = true;
+				std::swap(edges[i + 1], edges[j]);
+				break;
+			}
+		}
+
+		if (!found) //cycle
+			cycleEnds.push_back(i);
+	}
+	cycleEnds.push_back(n - 1);
+
+	return cycleEnds;
+}
+
+void RoomDemo::UpdateShadowVolume(int partIdx)
 {
 	vector<Edge> edges = GetContourEdges(partIdx);
-	//vector<unsigned short> cycleEnds = SortEdges(edges);
+	SortEdges(edges);
 
 	vector<VertexPositionNormal> vertices;
 	vector<unsigned short> indices;
@@ -371,7 +399,7 @@ Mesh RoomDemo::GetShadowVolume(int partIdx)
 	for (size_t i = 0; i < n; i++)
 		AddVolumeTrapezoid(edges[i], vertices, indices);
 
-	return  m_device.CreateMesh(vertices, indices);
+	m_pumaShadow[partIdx] = m_device.CreateMesh(indices, vertices);
 }
 
 void RoomDemo::AddVolumeTrapezoid(Edge &e, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices)
@@ -381,51 +409,33 @@ void RoomDemo::AddVolumeTrapezoid(Edge &e, vector<VertexPositionNormal>& vertice
 	XMVECTOR light = XMLoadFloat4(&LIGHT_POS);
 
 	XMFLOAT3 leftBack;
-	XMStoreFloat3(&leftBack, VOLUME_OFFSET * XMVector3Normalize(left - light));
+	XMStoreFloat3(&leftBack, VOLUME_OFFSET * XMVector3Normalize(left - light) + left);
 
 	XMFLOAT3 rightBack;
-	XMStoreFloat3(&rightBack, VOLUME_OFFSET * XMVector3Normalize(right - light));
+	XMStoreFloat3(&rightBack, VOLUME_OFFSET * XMVector3Normalize(right - light) + right);
 
 	XMFLOAT3 normal;
 	XMStoreFloat3(&normal, GetTriangleNormal(e.PositionLeft, leftBack, rightBack));
 
-	int n = indices.size();
-	for (size_t i = 0; i < 6; i++)
-		indices.push_back(n + i);
+	int n = vertices.size();
 
-	vertices.push_back({ e.PositionLeft,normal });
-	vertices.push_back({ leftBack,normal });
-	vertices.push_back({ rightBack,normal });
+	vertices.push_back({ e.PositionLeft, normal });
+	vertices.push_back({ leftBack, normal });
+	vertices.push_back({ rightBack, normal });
+	vertices.push_back({ e.PositionRight, normal });
 
-	vertices.push_back({ e.PositionLeft,normal });
-	vertices.push_back({ rightBack,normal });
-	vertices.push_back({ e.PositionRight,normal });
+	indices.push_back(n + 0);
+	indices.push_back(n + 1);
+	indices.push_back(n + 2);
+	indices.push_back(n + 0);
+	indices.push_back(n + 2);
+	indices.push_back(n + 3);
+
+	//test
+	indices.push_back(n + 0);
+	indices.push_back(n + 2);
+	indices.push_back(n + 1);
+	indices.push_back(n + 0);
+	indices.push_back(n + 3);
+	indices.push_back(n + 2);
 }
-
-//vector<unsigned short> RoomDemo::SortEdges(std::vector<Edge>& edges)
-//{
-//	vector<unsigned short> cycleEnds;//not needed
-//	int n = edges.size();
-//
-//	for (size_t i = 0; i < n - 1; i++)
-//	{
-//		bool found = false;
-//		for (size_t j = i + 1; j < n; j++)
-//		{
-//			if (edges[i].PositionRight.x == edges[j].PositionLeft.x
-//				&& edges[i].PositionRight.y == edges[j].PositionLeft.y
-//				&& edges[i].PositionRight.z == edges[j].PositionLeft.z) {
-//
-//				found = true;
-//				std::swap(edges[i + 1], edges[j]);
-//				break;
-//			}
-//		}
-//
-//		if (!found) //cycle
-//			cycleEnds.push_back(i);
-//	}
-//	cycleEnds.push_back(n - 1);
-//
-//	return cycleEnds;
-//}

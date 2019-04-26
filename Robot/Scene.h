@@ -44,6 +44,7 @@ namespace mini::gk2
 		Mesh m_wall; //uses m_wallsMtx[6]
 		Mesh m_plate[2]; //uses m_plateMtx
 		Mesh m_puma[6]; //uses m_pumaMtx
+		Mesh m_pumaShadow[6]; //uses m_pumaMtx
 		PumaData m_pumaData[6]; //uses m_pumaMtx
 		Mesh m_cylinder; //uses m_cylinderMtx
 		
@@ -78,7 +79,7 @@ namespace mini::gk2
 		bool IsFrontFaceForLight(int partIdx, int tglIdx);
 		DirectX::XMVECTOR GetTriangleNormal(DirectX::XMFLOAT3 a, DirectX::XMFLOAT3 b, DirectX::XMFLOAT3 c);
 		DirectX::XMVECTOR GetTriangleNormal(int partIdx, int tglIdx);
-		Mesh GetShadowVolume(int partIdx);
+		void UpdateShadowVolume(int partIdx);
 		//std::vector<unsigned short> SortEdges(std::vector<Edge> &edges);
 		void AddVolumeTrapezoid(Edge &e, std::vector<VertexPositionNormal> &vertices, std::vector<unsigned short> &indices);
 	};
