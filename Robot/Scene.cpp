@@ -10,7 +10,7 @@ using namespace DirectX;
 using namespace std;
 
 const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
-const float RoomDemo::VOLUME_OFFSET = 10.0f;
+const float Scene::VOLUME_OFFSET = 2.0f;
 const XMFLOAT4 Scene::MIRROR_COLOR = { XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f) };
 const unsigned int Scene::BS_MASK = 0xffffffff;
 const XMFLOAT4 Scene::WHITE_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -122,7 +122,7 @@ Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"R
 	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void mini::gk2::Scene::CreateRenderStates()
+void  Scene::CreateRenderStates()
 {
 	DepthStencilDescription dssDesc;
 	m_dssWrite = m_device.CreateDepthStencilState(dssDesc.StencilWriteDescription());
@@ -133,7 +133,7 @@ void mini::gk2::Scene::CreateRenderStates()
 	m_bsAlpha = m_device.CreateBlendState(bsDesc.AlphaBlendDescription());
 }
 
-void mini::gk2::Scene::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
+void  Scene::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
 {
 	XMMATRIX mtx = XMLoadFloat4x4(&cameraMtx);
 	XMVECTOR det;
@@ -149,11 +149,11 @@ void Scene::Update(const Clock& c)
 	HandleCameraInput(dt);
 	UpdateRobotMtx(dt);
 
-	for (size_t i = 1; i < 6; i++)
+	for (size_t i = 0; i < 6; i++)
 		UpdateShadowVolume(i);
 }
 
-void mini::gk2::Scene::UpdateRobotMtx(float dt)
+void  Scene::UpdateRobotMtx(float dt)
 {
 	angle += dt;
 	XMVECTOR axis = { sqrt(3), 1, 0 };
@@ -182,7 +182,7 @@ void mini::gk2::Scene::UpdateRobotMtx(float dt)
 
 }
 
-void mini::gk2::Scene::InverseKinematics(XMVECTOR pos, XMVECTOR normal,
+void  Scene::InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 	float & a1, float & a2, float & a3, float & a4, float & a5)
 {
 	float l1 = 0.91f, l2 = 0.81f, l3 = 0.33f, dy = 0.27f, dz = 0.26f;
@@ -241,9 +241,13 @@ void Scene::Render()
 	DrawWalls();
 	DrawCylinder();
 	DrawPlateBack();
+	for (size_t i = 0; i < 6; i++)
+	{
+		DrawMesh(m_pumaShadow[i],m_pumaMtx[i]);
+	}
 }
 
-void mini::gk2::Scene::DrawMirroredWorld(XMMATRIX m_view)
+void Scene::DrawMirroredWorld(XMMATRIX m_view)
 {
 	m_device.context()->OMSetDepthStencilState(m_dssWrite.get(), 1);
 	DrawPlateFront();
@@ -297,11 +301,8 @@ void Scene::DrawPlateBack()
 	DrawMesh(m_plate[1], m_plateMtx[1]);
 }
 
-	m_phongEffect.Begin(m_device.context());
-	DrawScene();
-}
 
-void RoomDemo::UpdateShadowVolume(int partIdx)
+void Scene::UpdateShadowVolume(int partIdx)
 {
 	vector<VertexPositionNormal> vertices;
 	vector<unsigned short> indices;
@@ -322,7 +323,7 @@ void RoomDemo::UpdateShadowVolume(int partIdx)
 	m_pumaShadow[partIdx] = m_device.CreateMesh(indices, vertices);
 }
 
-vector<Edge> RoomDemo::GetContourEdges(int partIdx, XMVECTOR &light)
+vector<Edge> Scene::GetContourEdges(int partIdx, XMVECTOR &light)
 {
 	PumaData & part = m_pumaData[partIdx];
 	vector<Edge> contour;
@@ -344,7 +345,7 @@ vector<Edge> RoomDemo::GetContourEdges(int partIdx, XMVECTOR &light)
 	return contour;
 }
 
-bool RoomDemo::IsFrontFaceForLight(int partIdx, int tglIdx, XMVECTOR &light) {
+bool Scene::IsFrontFaceForLight(int partIdx, int tglIdx, XMVECTOR &light) {
 	PumaData & part = m_pumaData[partIdx];
 
 	XMVECTOR tglVert = XMLoadFloat3(&part.verts[part.indices[3 * tglIdx]].position);
@@ -359,7 +360,7 @@ bool RoomDemo::IsFrontFaceForLight(int partIdx, int tglIdx, XMVECTOR &light) {
 	return front;
 }
 
-XMVECTOR RoomDemo::GetTriangleNormal(XMFLOAT3 a, XMFLOAT3 b, XMFLOAT3 c) {
+XMVECTOR Scene::GetTriangleNormal(XMFLOAT3 a, XMFLOAT3 b, XMFLOAT3 c) {
 	XMVECTOR p1 = XMLoadFloat3(&a);
 	XMVECTOR p2 = XMLoadFloat3(&b);
 	XMVECTOR p3 = XMLoadFloat3(&c);
@@ -372,7 +373,7 @@ XMVECTOR RoomDemo::GetTriangleNormal(XMFLOAT3 a, XMFLOAT3 b, XMFLOAT3 c) {
 	return norm;
 }
 
-XMVECTOR RoomDemo::GetTriangleNormal(int partIdx, int tglIdx) {
+XMVECTOR Scene::GetTriangleNormal(int partIdx, int tglIdx) {
 	PumaData & part = m_pumaData[partIdx];
 	XMFLOAT3 a = part.verts[part.indices[3 * tglIdx]].position;
 	XMFLOAT3 b = part.verts[part.indices[3 * tglIdx + 1]].position;
@@ -381,7 +382,7 @@ XMVECTOR RoomDemo::GetTriangleNormal(int partIdx, int tglIdx) {
 	return GetTriangleNormal(a, b, c);
 }
 
-void RoomDemo::AddVolumeTrapezoid(Edge &e, XMVECTOR &light, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices)
+void Scene::AddVolumeTrapezoid(Edge &e, XMVECTOR &light, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices)
 {
 	XMVECTOR left = XMLoadFloat3(&e.PositionLeft);
 	XMVECTOR right = XMLoadFloat3(&e.PositionRight);
@@ -410,7 +411,7 @@ void RoomDemo::AddVolumeTrapezoid(Edge &e, XMVECTOR &light, vector<VertexPositio
 	indices.push_back(n + 3);
 }
 
-void RoomDemo::AddVolumeCupTriangle(int partIdx, int tglIdx, XMVECTOR &light, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices) {
+void Scene::AddVolumeCupTriangle(int partIdx, int tglIdx, XMVECTOR &light, vector<VertexPositionNormal>& vertices, vector<unsigned short>& indices) {
 	PumaData & part = m_pumaData[partIdx];
 
 	int n = vertices.size();
@@ -433,7 +434,7 @@ void RoomDemo::AddVolumeCupTriangle(int partIdx, int tglIdx, XMVECTOR &light, ve
 	}
 }
 
-XMFLOAT3 RoomDemo::MoveAlongLight(XMVECTOR & light, XMFLOAT3 position)
+XMFLOAT3 Scene::MoveAlongLight(XMVECTOR & light, XMFLOAT3 position)
 {
 	XMVECTOR pos = XMLoadFloat3(&position);
 	XMStoreFloat3(&position, VOLUME_OFFSET * XMVector3Normalize(pos - light) + pos);
