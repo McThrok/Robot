@@ -1,4 +1,4 @@
-#include <array>
+﻿#include <array>
 #include "Scene.h"
 #include "meshLoader.h"
 #include <DirectXMath.h>
@@ -131,6 +131,35 @@ void  Scene::CreateRenderStates()
 
 	BlendDescription bsDesc;
 	m_bsAlpha = m_device.CreateBlendState(bsDesc.AlphaBlendDescription());
+
+	////m_dssInitZBuffer
+	//dssDesc = DepthStencilDescription();
+	//dssDesc.DepthEnable = true;
+	//dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	//dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	//m_dssInitZBuffer = m_device.CreateDepthStencilState(dssDesc);
+
+	//m_dssInitShadow
+	dssDesc = DepthStencilDescription();
+	dssDesc.StencilEnable = true;
+	dssDesc.DepthEnable = true;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dssDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	//dssDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_DECR;
+	dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	dssDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+	m_dssInitShadow = m_device.CreateDepthStencilState(dssDesc);
+
+	//m_dssRenderShadow
+	dssDesc = DepthStencilDescription();
+	dssDesc.StencilEnable = true;
+	dssDesc.DepthEnable = true;
+	dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dssDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER;
+	dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+	m_dssRenderShadow = m_device.CreateDepthStencilState(dssDesc);
+
 }
 
 void  Scene::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
@@ -234,17 +263,44 @@ void Scene::Render()
 	DrawMesh(m_plate[0], m_plateMtx[0]);
 	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 
+	//DrawShadowVolumes();
+
+
+	//m_cbSurfaceColor.Update(m_device.context(), MIRROR_COLOR);
+	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+	//DrawMesh(m_plate[0], m_plateMtx[0]);
+	//m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+
 	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 	m_phongEffect.Begin(m_device.context());
+	
+	//m_device.context()->OMSetDepthStencilState(nullptr, 0);
 
+	//m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	m_device.context()->OMSetDepthStencilState(m_dssInitShadow.get(), 0);
+
+
+	//BlendDescription desc;
+	//desc.RenderTarget[0].BlendEnable = true;
+	//desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	//desc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	//desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+
+	//m_device.CreateRasterizerState()
+
+	//m_device.context()->OMSetBlendState(m_device.CreateBlendState(desc).get(), nullptr, 0);
+	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 	DrawPuma();
-	DrawWalls();
-	DrawCylinder();
-	DrawPlateBack();
-	for (size_t i = 0; i < 6; i++)
-	{
-		DrawMesh(m_pumaShadow[i],m_pumaMtx[i]);
-	}
+
+
+	float clearColor[4] = { 0.5f, 0.5f, 1.0f, 1.0f };
+	m_device.context()->ClearRenderTargetView(getDefaultRenderTarget().getRenderTarget(0), clearColor);
+
+	//m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH , 1.0f, 0);
+	m_device.context()->OMSetDepthStencilState(m_dssRenderShadow.get(), 0);
+	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+	DrawFloor();
+
 }
 
 void Scene::DrawMirroredWorld(XMMATRIX m_view)
@@ -299,6 +355,12 @@ void Scene::DrawPlateFront()
 void Scene::DrawPlateBack()
 {
 	DrawMesh(m_plate[1], m_plateMtx[1]);
+}
+
+void Scene::DrawShadowVolumes()
+{
+	for (size_t i = 0; i < 6; i++)
+		DrawMesh(m_pumaShadow[i], m_pumaMtx[i]);
 }
 
 

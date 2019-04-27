@@ -52,6 +52,10 @@ namespace mini::gk2
 		PumaData m_pumaData[6]; //uses m_pumaMtx
 		Mesh m_cylinder; //uses m_cylinderMtx
 		
+
+		//dx_ptr<ID3D11DepthStencilState> m_dssInitZBuffer;
+		dx_ptr<ID3D11DepthStencilState> m_dssInitShadow;
+		dx_ptr<ID3D11DepthStencilState> m_dssRenderShadow;
 		dx_ptr<ID3D11DepthStencilState> m_dssWrite;
 		dx_ptr<ID3D11DepthStencilState> m_dssTest;
 		dx_ptr<ID3D11RasterizerState> m_rsCCW;
@@ -68,8 +72,6 @@ namespace mini::gk2
 		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
 
 		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
-		dx_ptr<ID3D11DepthStencilState> m_dssShadow;
-		dx_ptr<ID3D11DepthStencilState> m_dssRender;
 		void UpdateRobotMtx(float dt);
 		void InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 			float &a1, float &a2, float &a3, float &a4, float &a5);
@@ -81,6 +83,7 @@ namespace mini::gk2
 		void DrawCylinder();
 		void DrawPlateFront();
 		void DrawPlateBack();
+		void DrawShadowVolumes();
 
 		void UpdateShadowVolume(int partIdx);
 		vector<Edge> GetContourEdges(int partIdx, XMVECTOR &light);
