@@ -38,6 +38,7 @@ namespace mini::gk2
 		Mesh m_wall; //uses m_wallsMtx[6]
 		Mesh m_plate[2]; //uses m_plateMtx
 		Mesh m_puma[6]; //uses m_pumaMtx
+		Mesh m_cylinder; //uses m_cylinderMtx
 		
 		dx_ptr<ID3D11DepthStencilState> m_dssWrite;
 		dx_ptr<ID3D11DepthStencilState> m_dssTest;
@@ -46,7 +47,7 @@ namespace mini::gk2
 		dx_ptr<ID3D11InputLayout> m_inputlayout;
 		dx_ptr<ID3D11SamplerState> m_samplerWrap;
 
-		DirectX::XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx;
+		DirectX::XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx, m_cylinderMtx;
 
 		PhongEffect m_phongEffect;
 		TexturedEffect m_mirrorTexturedEffect;
@@ -62,6 +63,7 @@ namespace mini::gk2
 		void DrawMirroredWorld(DirectX::XMMATRIX m_view);
 		void DrawPuma();
 		void DrawWalls();
+		void DrawCylinder();
 		void DrawPlateFront();
 		void DrawPlateBack();
 	};

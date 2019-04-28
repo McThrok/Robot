@@ -38,6 +38,7 @@ namespace mini
 			return CreateRectangle(side, side);
 		}
 		static vpn_mesh_t CreateRectangle(float width, float height);
+		static vpn_mesh_t CreateCylinder(float radius, float height, int r_count);
 
 		static vpn_mesh_t LoadMesh(const std::wstring& fileName);
 		static vpn_mesh_t LoadPumaMesh(const std::wstring& fileName);

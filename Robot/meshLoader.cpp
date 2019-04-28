@@ -116,6 +116,57 @@ MeshLoader::vpn_mesh_t MeshLoader::CreateRectangle(float width, float height)
 	};
 }
 
+MeshLoader::vpn_mesh_t mini::MeshLoader::CreateCylinder(float radius, float height, int r_count)
+{
+	vpn_verts_t vpn;
+	indices_t indices;
+
+	for (size_t i = 0; i < r_count; i++)
+	{
+		float angle = float(i) / float(r_count - 1) * XM_2PI;
+		vpn.push_back({ XMFLOAT3(0.5f * height, radius * cos(angle), radius * sinf(angle)), XMFLOAT3(1.0f, 0.0f, 0.0f) });
+	}
+
+	for (size_t i = 0; i < r_count-2; i++)
+	{
+		indices.push_back(0);
+		indices.push_back(i + 1);
+		indices.push_back(i + 2);
+	}
+
+	for (size_t i = 0; i < r_count; i++)
+	{
+		float angle = float(i) / float(r_count - 1) * XM_2PI;
+		vpn.push_back({ XMFLOAT3(- 0.5f * height, radius * cos(angle), radius * sinf(angle)), XMFLOAT3(-1.0f, 0.0f, 0.0f) });
+	}
+
+	for (size_t i = 0; i < r_count - 2; i++)
+	{
+		indices.push_back(r_count);
+		indices.push_back(r_count + i + 2);
+		indices.push_back(r_count + i + 1);
+	}
+
+	size_t idx = vpn.size();
+	for (size_t i = 0; i < r_count-1; i++)
+	{
+		vpn.push_back({ vpn[i].position, XMFLOAT3(0.0f, vpn[i].position.y, vpn[i].position.z) });
+		vpn.push_back({ vpn[r_count + i].position, 	XMFLOAT3(0.0f, vpn[r_count + i].position.y, vpn[r_count + i].position.z) });
+		vpn.push_back({ vpn[i + 1].position, XMFLOAT3(0.0f, vpn[i + 1].position.y, vpn[i + 1].position.z) });
+
+		vpn.push_back({ vpn[i + 1].position, XMFLOAT3(0.0f, vpn[i + 1].position.y, vpn[i + 1].position.z) });
+		vpn.push_back({ vpn[r_count + i].position, 	XMFLOAT3(0.0f, vpn[r_count + i].position.y, vpn[r_count + i].position.z) });
+		vpn.push_back({ vpn[r_count + i + 1].position, 	XMFLOAT3(0.0f, vpn[r_count + i + 1].position.y, vpn[r_count + i + 1].position.z) });
+
+		for (size_t j = 0; j < 6; j++)
+			indices.push_back(idx + j);
+		
+		idx += 6;
+	}
+
+	return vpn_mesh_t(vpn, indices);
+}
+
 MeshLoader::vpn_mesh_t MeshLoader::LoadMesh(const std::wstring& fileName)
 {
 	//File format for VN vertices and IN indices (IN divisible by 3, i.e. IN/3 triangles):
