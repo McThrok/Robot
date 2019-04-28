@@ -28,6 +28,9 @@ namespace mini::gk2
 #pragma region CONSTANTS
 
 		static const XMFLOAT4 LIGHT_POS;
+		static const XMFLOAT4 LIGHT_COLOR;
+		static const XMFLOAT4 LIGHT_AMBIENT;
+		static const float CLEAR_COLOR[4];
 		static const float VOLUME_OFFSET;
 		static const DirectX::XMFLOAT4 MIRROR_COLOR;
 		static const unsigned int BS_MASK;
@@ -53,9 +56,10 @@ namespace mini::gk2
 		Mesh m_cylinder; //uses m_cylinderMtx
 		
 
-		//dx_ptr<ID3D11DepthStencilState> m_dssInitZBuffer;
 		dx_ptr<ID3D11DepthStencilState> m_dssInitShadow;
+		dx_ptr<ID3D11RasterizerState> m_rsInitShadow;
 		dx_ptr<ID3D11DepthStencilState> m_dssRenderShadow;
+		dx_ptr<ID3D11DepthStencilState> m_dssRenderNoShadow;
 		dx_ptr<ID3D11DepthStencilState> m_dssWrite;
 		dx_ptr<ID3D11DepthStencilState> m_dssTest;
 		dx_ptr<ID3D11RasterizerState> m_rsCCW;
