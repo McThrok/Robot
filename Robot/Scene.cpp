@@ -10,18 +10,27 @@ using namespace std;
 
 const XMFLOAT4 Scene::LIGHT_POS = { 1.0f, 1.0f, 1.0f, 1.0f };
 const unsigned int Scene::BS_MASK = 0xffffffff;
+const XMFLOAT4 Scene::WHITE_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
+const XMFLOAT4 Scene::PUMA_COLOR = { 125.0f / 255.0f, 167.0f / 255.0f, 216.0f / 255.0f, 100.0f / 255.0f };
+const XMFLOAT4 Scene::WALLS_COLORS[] = {
+	XMFLOAT4(255.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 100.0f / 255.0f),
+	XMFLOAT4(255.0f / 255.0f, 241.0f / 255.0f, 224.0f / 255.0f, 100.0f / 255.0f),
+	XMFLOAT4(255.0f / 255.0f, 246.0f / 255.0f, 214.0f / 255.0f, 100.0f / 255.0f),
+	XMFLOAT4(229.0f / 255.0f, 255.0f / 255.0f, 235.0f / 255.0f, 100.0f / 255.0f),
+	XMFLOAT4(251.0f / 255.0f, 229.0f / 255.0f, 255.0f / 255.0f, 100.0f / 255.0f),
+	XMFLOAT4(229.0f / 255.0f, 245.0f / 255.0f, 255.0f / 255.0f, 100.0f / 255.0f),
+};
 
 Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
-//Constant Buffers
-m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
-m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()), 
-m_cbMirrorTexMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
-m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
-m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
-m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>()),
-
-//Textures
-m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_texture.png"))
+	//Constant Buffers
+	m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+	m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()), 
+	m_cbMirrorTexMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+	m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
+	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
+	m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>()),
+	//Textures
+	m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_texture.png"))
 {
 	//Projection matrix
 	auto s = m_window.getClientSize();
@@ -35,12 +44,16 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	vector<VertexPositionNormal> vertices;
 	vector<unsigned short> indices;
 
-	// Floor
+	// Walls
 	tie(vertices, indices) = MeshLoader::CreateSquare(4.0f);
-	m_floor = m_device.CreateMesh(indices, vertices);
+	m_wall = m_device.CreateMesh(indices, vertices);
 
-	XMStoreFloat4x4(&m_floorMtx, XMMatrixTranslation(0.0f, 0.0f, 1.0f)
-		* XMMatrixRotationX(XM_PIDIV2));
+	XMMATRIX temp = XMMatrixTranslation(0.0f, 1.0f, 2.0f);
+	float a = 0.f;
+	for (auto i = 0U; i < 4U; ++i, a += XM_PIDIV2)
+		XMStoreFloat4x4(&m_wallsMtx[i], temp * XMMatrixRotationY(a)* XMMatrixTranslation(-0.5f, 0.0f, 0.0f));
+	XMStoreFloat4x4(&m_wallsMtx[4], XMMatrixTranslation(-0.5f, 0.0f, 1.0f) * XMMatrixRotationX(XM_PIDIV2));
+	XMStoreFloat4x4(&m_wallsMtx[5], XMMatrixTranslation(-0.5f, 0.0f, 3.0f) * XMMatrixRotationX(-XM_PIDIV2));
 
 	// Plate
 	tie(vertices, indices) = MeshLoader::CreateSquare(1.5f);
@@ -90,8 +103,7 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	XMStoreFloat4x4(&tempMtx, XMMatrixIdentity());
 	m_cbMirrorTexMtx.Update(m_device.context(), tempMtx);
 	
-	m_texturedEffect = TexturedEffect(m_device.CreateVertexShader(vsCode),
-		m_device.CreatePixelShader(psCode),
+	m_mirrorTexturedEffect = TexturedEffect(m_device.CreateVertexShader(vsCode), m_device.CreatePixelShader(psCode),
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbMirrorTexMtx, m_samplerWrap, m_mirrorTexture);
 
 	//Constant buffers content
@@ -196,15 +208,17 @@ void Scene::Render()
 	Gk2ExampleBase::Render();
 
 	XMMATRIX m_view = m_camera.getViewMatrix();
-	DrawMirroredWorld(m_view);
-	
 	XMFLOAT4X4 old_view;
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
 
+	DrawMirroredWorld(m_view);
+	
+	UpdateCameraCB(old_view);
+
 	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
-	m_texturedEffect.SetTexture(m_mirrorTexture);
-	m_texturedEffect.Begin(m_device.context());
+	m_mirrorTexturedEffect.SetTexture(m_mirrorTexture);
+	m_mirrorTexturedEffect.Begin(m_device.context());
 	DrawMesh(m_plate[0], m_plateMtx[0]);
 	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 
@@ -212,8 +226,8 @@ void Scene::Render()
 	m_phongEffect.Begin(m_device.context());
 
 	DrawPuma();
-	DrawFloor();
 	DrawPlateBack();
+	DrawWalls();
 }
 
 void mini::gk2::Scene::DrawMirroredWorld(XMMATRIX m_view)
@@ -227,23 +241,31 @@ void mini::gk2::Scene::DrawMirroredWorld(XMMATRIX m_view)
 	XMStoreFloat4x4(&new_view, XMLoadFloat4x4(&m_mirrorMtx) * m_view);
 	UpdateCameraCB(new_view);
 
-	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
 	DrawPuma();
-	DrawFloor();
-	
+	DrawWalls();
+
 	m_device.context()->RSSetState(nullptr);
 	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 }
 
 void Scene::DrawPuma()
 {
+	m_cbSurfaceColor.Update(m_device.context(), PUMA_COLOR);
 	for (size_t i = 0; i < 6; i++)
 		DrawMesh(m_puma[i], m_pumaMtx[i]);
+	m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
 }
 
-void Scene::DrawFloor()
+
+void Scene::DrawWalls()
 {
-	DrawMesh(m_floor, m_floorMtx);
+	for (auto i = 0; i < 6; ++i)
+	{
+		m_cbSurfaceColor.Update(m_device.context(), WALLS_COLORS[i]);
+		DrawMesh(m_wall, m_wallsMtx[i]);
+	}
+	m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
 }
 
 void Scene::DrawPlateFront()
