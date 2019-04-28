@@ -21,6 +21,9 @@ namespace mini::gk2
 #pragma region CONSTANTS
 		static const DirectX::XMFLOAT4 LIGHT_POS;
 		static const unsigned int BS_MASK;
+		static const DirectX::XMFLOAT4 WHITE_COLOR;
+		static const DirectX::XMFLOAT4 PUMA_COLOR;
+		static const DirectX::XMFLOAT4 WALLS_COLORS[6];
 #pragma endregion
 
 		ConstantBuffer<DirectX::XMFLOAT4X4> m_cbWorldMtx, //vertex shader constant buffer slot 0
@@ -32,7 +35,7 @@ namespace mini::gk2
 
 		double angle = 0;
 
-		Mesh m_floor; //uses m_floorMtx
+		Mesh m_wall; //uses m_wallsMtx[6]
 		Mesh m_plate[2]; //uses m_plateMtx
 		Mesh m_puma[6]; //uses m_pumaMtx
 		
@@ -42,12 +45,13 @@ namespace mini::gk2
 		dx_ptr<ID3D11BlendState> m_bsAlpha;
 		dx_ptr<ID3D11InputLayout> m_inputlayout;
 		dx_ptr<ID3D11SamplerState> m_samplerWrap;
-		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
 
-		DirectX::XMFLOAT4X4 m_projMtx, m_floorMtx, m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx;
+		DirectX::XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx;
 
 		PhongEffect m_phongEffect;
-		TexturedEffect m_texturedEffect;
+		TexturedEffect m_mirrorTexturedEffect;
+
+		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
 
 		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
 		void UpdateRobotMtx(float dt);
@@ -57,7 +61,7 @@ namespace mini::gk2
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
 		void DrawMirroredWorld(DirectX::XMMATRIX m_view);
 		void DrawPuma();
-		void DrawFloor();
+		void DrawWalls();
 		void DrawPlateFront();
 		void DrawPlateBack();
 	};
