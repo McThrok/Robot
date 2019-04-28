@@ -7,6 +7,12 @@
     <FxCompile Include="phongVS.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
+    <FxCompile Include="texturedPS.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="texturedVS.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gk2ExampleBase.cpp">
@@ -29,9 +35,6 @@
     <ClInclude Include="gk2ExampleBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PhongEffect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="meshLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -40,6 +43,12 @@
     </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PhongEffect.h">
+      <Filter>Header Files\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="TexturedEffect.h">
+      <Filter>Header Files\Effects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -51,6 +60,9 @@
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{a06f4a20-625a-49c1-a569-3c9cc0e8e01f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Effects">
+      <UniqueIdentifier>{313976c2-7304-4481-9d00-4b88ffdc8b59}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

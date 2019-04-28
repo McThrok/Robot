@@ -9,16 +9,19 @@ using namespace DirectX;
 using namespace std;
 
 const XMFLOAT4 Scene::LIGHT_POS = { 1.0f, 1.0f, 1.0f, 1.0f };
-const XMFLOAT4 Scene::MIRROR_COLOR = { XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f) };
 const unsigned int Scene::BS_MASK = 0xffffffff;
 
 Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
 //Constant Buffers
 m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
-m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()), 
+m_cbMirrorTexMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
 m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
-m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
+m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>()),
+
+//Textures
+m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_texture.png"))
 {
 	//Projection matrix
 	auto s = m_window.getClientSize();
@@ -67,9 +70,6 @@ m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
 	for (size_t i = 0; i < 6; i++)
 		XMStoreFloat4x4(&m_pumaMtx[i], XMMatrixIdentity());
 
-	//Constant buffers content
-	m_cbLightPos.Update(m_device.context(), LIGHT_POS);
-
 	// Phong
 	auto vsCode = m_device.LoadByteCode(L"phongVS.cso");
 	auto psCode = m_device.LoadByteCode(L"phongPS.cso");
@@ -77,6 +77,25 @@ m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
 	m_phongEffect = PhongEffect(m_device.CreateVertexShader(vsCode), m_device.CreatePixelShader(psCode),
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbLightPos, m_cbSurfaceColor);
 	m_inputlayout = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
+
+	// Mirror texture
+	vsCode = m_device.LoadByteCode(L"texturedVS.cso");
+	psCode = m_device.LoadByteCode(L"texturedPS.cso");
+
+	SamplerDescription sd;
+	sd.AddressU = sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	m_samplerWrap = m_device.CreateSamplerState(sd);
+
+	XMFLOAT4X4 tempMtx;
+	XMStoreFloat4x4(&tempMtx, XMMatrixIdentity());
+	m_cbMirrorTexMtx.Update(m_device.context(), tempMtx);
+	
+	m_texturedEffect = TexturedEffect(m_device.CreateVertexShader(vsCode),
+		m_device.CreatePixelShader(psCode),
+		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbMirrorTexMtx, m_samplerWrap, m_mirrorTexture);
+
+	//Constant buffers content
+	m_cbLightPos.Update(m_device.context(), LIGHT_POS);
 
 	m_device.context()->IASetInputLayout(m_inputlayout.get());
 	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -183,8 +202,9 @@ void Scene::Render()
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
 
-	m_cbSurfaceColor.Update(m_device.context(), MIRROR_COLOR);
 	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+	m_texturedEffect.SetTexture(m_mirrorTexture);
+	m_texturedEffect.Begin(m_device.context());
 	DrawMesh(m_plate[0], m_plateMtx[0]);
 	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 
