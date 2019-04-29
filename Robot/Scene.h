@@ -47,6 +47,7 @@ namespace mini::gk2
 		double angle = 0;
 
 		Mesh m_wall; //uses m_wallsMtx[6]
+		Mesh m_light; //uses m_lightMtx[6]
 		Mesh m_plate[2]; //uses m_plateMtx
 		Mesh m_puma[6]; //uses m_pumaMtx
 		Mesh m_pumaShadow[6]; //uses m_pumaMtx
@@ -65,7 +66,7 @@ namespace mini::gk2
 		dx_ptr<ID3D11InputLayout> m_inputlayout;
 		dx_ptr<ID3D11SamplerState> m_samplerWrap;
 
-		XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx, m_cylinderMtx;
+		XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx, m_cylinderMtx, m_lightMtx;
 
 		PhongEffect m_phongEffect;
 		TexturedEffect m_mirrorTexturedEffect;
@@ -79,6 +80,7 @@ namespace mini::gk2
 
 		void DrawMesh(const Mesh& m, XMFLOAT4X4 worldMtx);
 		void DrawMirroredWorld(XMMATRIX m_view);
+		void DrawLight();
 		void DrawPuma();
 		void DrawWalls();
 		void DrawCylinder();

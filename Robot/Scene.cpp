@@ -50,6 +50,12 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	vector<VertexPositionNormal> vertices;
 	vector<unsigned short> indices;
 
+	//light
+	tie(vertices, indices) = MeshLoader::CreateBox(0.05f);
+	m_light = m_device.CreateMesh(indices, vertices);
+
+	XMStoreFloat4x4(&m_lightMtx, XMMatrixTranslation(LIGHT_POS.x, LIGHT_POS.y, LIGHT_POS.z));
+
 	// Walls
 	tie(vertices, indices) = MeshLoader::CreateSquare(4.0f);
 	m_wall = m_device.CreateMesh(indices, vertices);
@@ -308,6 +314,11 @@ void Scene::RenderScene()
 	DrawWalls();
 	DrawCylinder();
 	DrawPlateBack();
+
+	//light marker
+	m_cbLightColor.Update(m_device.context(), WHITE_COLOR);
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	DrawLight();
 }
 
 void Scene::RenderMirror(XMMATRIX m_view)
@@ -347,6 +358,11 @@ void Scene::DrawMirroredWorld(XMMATRIX m_view)
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
 	m_device.context()->RSSetState(nullptr);
+}
+
+void Scene::DrawLight()
+{
+	DrawMesh(m_light, m_lightMtx);
 }
 
 void Scene::DrawPuma()
