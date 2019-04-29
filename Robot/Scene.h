@@ -86,6 +86,8 @@ namespace mini::gk2
 		void DrawPlateBack();
 		void DrawShadowVolumes();
 
+		void FillStensilShadows();
+
 		void UpdateShadowVolume(int partIdx);
 		vector<Edge> GetContourEdges(int partIdx, XMVECTOR &light);
 		bool IsFrontFaceForLight(int partIdx, int tglIdx, XMVECTOR &light);
