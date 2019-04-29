@@ -8,6 +8,13 @@ cbuffer cbSurfaceColor : register(b1)
 	float4 surfaceColor;
 }
 
+cbuffer cbLightColor : register(b2)
+{
+	float4 lightColor;
+}
+
+
+
 struct PSInput
 {
 	float4 pos : SV_POSITION;
@@ -17,7 +24,6 @@ struct PSInput
 };
 
 static const float3 ambientColor = float3(0.2f, 0.2f, 0.2f);
-static const float3 lightColor = float3(1.0f, 1.0f, 1.0f);
 static const float kd = 0.5, ks = 0.2f, m = 100.0f;
 
 float4 main(PSInput i) : SV_TARGET

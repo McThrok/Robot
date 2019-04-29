@@ -22,16 +22,18 @@ namespace mini
 			enum PSConstantBufferSlot
 			{
 				LightPositionSlot,
-				SurfaceColorSlot
+				SurfaceColorSlot,
+				LightColorSlot
 			};
 
 			PhongEffect() = default;
 
 			PhongEffect(dx_ptr<ID3D11VertexShader>&& vs, dx_ptr<ID3D11PixelShader>&& ps, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbWorld,
 				const ConstantBuffer<DirectX::XMFLOAT4X4, 2>& cbView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
-				const ConstantBuffer<DirectX::XMFLOAT4>& cbLightPos, const ConstantBuffer<DirectX::XMFLOAT4>& cbSurfaceColor)
+				const ConstantBuffer<DirectX::XMFLOAT4>& cbLightPos, const ConstantBuffer<DirectX::XMFLOAT4>& cbSurfaceColor,
+				const ConstantBuffer<DirectX::XMFLOAT4>& cbLightColor)
 				: StaticEffect(BasicEffect{ move(vs), move(ps) }, VSConstantBuffers{ cbWorld, cbView, cbProj },
-					PSConstantBuffers{ cbLightPos, cbSurfaceColor })
+					PSConstantBuffers{ cbLightPos, cbSurfaceColor, cbLightColor})
 			{ }
 
 			//setter methods defined for convenience
@@ -40,6 +42,7 @@ namespace mini
 			void SetProjMatrixBuffer(const ConstantBuffer<DirectX::XMFLOAT4X4>& buffer) { SetVSConstantBuffer(ProjMtxSlot, buffer); }
 			void SetLightPosBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) { SetPSConstantBuffer(LightPositionSlot, buffer); }
 			void SetSurfaceColorBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) { SetPSConstantBuffer(SurfaceColorSlot, buffer); }
+			void SetLightColorBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) { SetPSConstantBuffer(LightColorSlot, buffer); }
 		};
 	}
 }

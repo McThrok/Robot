@@ -26,12 +26,11 @@ namespace mini::gk2
 #pragma region CONSTANTS
 
 		static const XMFLOAT4 LIGHT_POS;
-		static const XMFLOAT4 LIGHT_COLOR;
-		static const XMFLOAT4 LIGHT_AMBIENT;
 		static const float CLEAR_COLOR[4];
 		static const float VOLUME_OFFSET;
 		static const DirectX::XMFLOAT4 MIRROR_COLOR;
 		static const unsigned int BS_MASK;
+		static const XMFLOAT4 BLACK_COLOR;
 		static const DirectX::XMFLOAT4 WHITE_COLOR;
 		static const DirectX::XMFLOAT4 PUMA_COLOR;
 		static const DirectX::XMFLOAT4 WALLS_COLORS[6];
@@ -41,6 +40,7 @@ namespace mini::gk2
 			m_cbProjMtx;	//vertex shader constant buffer slot 2 & geometry shader constant buffer slot 0
 		ConstantBuffer<DirectX::XMFLOAT4X4, 2> m_cbViewMtx; //vertex shader constant buffer slot 1
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbSurfaceColor;	//pixel shader constant buffer slot 0
+		ConstantBuffer<DirectX::XMFLOAT4> m_cbLightColor;	//pixel shader constant buffer slot 0
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
 		ConstantBuffer<DirectX::XMFLOAT4X4> m_cbMirrorTexMtx;
 

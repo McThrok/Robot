@@ -11,12 +11,11 @@ using namespace std;
 
 const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
 const float Scene::VOLUME_OFFSET = 2.0f;
-const XMFLOAT4 Scene::LIGHT_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
-const XMFLOAT4 Scene::LIGHT_AMBIENT = { 0.4f, 0.4f, 0.4f, 1.0f };
 const float Scene::CLEAR_COLOR[4] = { 0.5f, 0.5f, 1.0f, 1.0f };
 const XMFLOAT4 Scene::MIRROR_COLOR = { XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f) };
 const unsigned int Scene::BS_MASK = 0xffffffff;
 const XMFLOAT4 Scene::WHITE_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
+const XMFLOAT4 Scene::BLACK_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
 const XMFLOAT4 Scene::PUMA_COLOR = { 125.0f / 255.0f, 167.0f / 255.0f, 216.0f / 255.0f, 100.0f / 255.0f };
 const XMFLOAT4 Scene::WALLS_COLORS[] = {
 	XMFLOAT4(255.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f, 100.0f / 255.0f),
@@ -34,6 +33,7 @@ Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"R
 	m_cbMirrorTexMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 	m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
 	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
+	m_cbLightColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 	m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>()),
 	//Textures
 	m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_texture.png"))
@@ -100,7 +100,7 @@ Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"R
 	auto psCode = m_device.LoadByteCode(L"phongPS.cso");
 
 	m_phongEffect = PhongEffect(m_device.CreateVertexShader(vsCode), m_device.CreatePixelShader(psCode),
-		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbLightPos, m_cbSurfaceColor);
+		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbLightPos, m_cbSurfaceColor, m_cbLightColor);
 	m_inputlayout = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
 
 	// Mirror texture
@@ -278,43 +278,10 @@ void Scene::Render()
 	Gk2ExampleBase::Render();
 
 	XMMATRIX m_view = m_camera.getViewMatrix();
-	//DrawMirroredWorld(m_view);
-
-	//m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	XMFLOAT4X4 old_view;
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
-
-	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
-	//m_texturedEffect.SetTexture(m_mirrorTexture);
-	//m_texturedEffect.Begin(m_device.context());
-	//DrawMesh(m_plate[0], m_plateMtx[0]);
-	//m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
-
-	//DrawShadowVolumes();
-
-
-	//m_cbSurfaceColor.Update(m_device.context(), MIRROR_COLOR);
-	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
-	//DrawMesh(m_plate[0], m_plateMtx[0]);
-	//m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
-
-
-	//m_device.context()->OMSetDepthStencilState(nullptr, 0);
-
-	//m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-
-	//BlendDescription desc;
-	//desc.RenderTarget[0].BlendEnable = true;
-	//desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	//desc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	//desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-
-	//m_device.CreateRasterizerState()
-
-	//m_device.context()->OMSetBlendState(m_device.CreateBlendState(desc).get(), nullptr, 0);
 
 	m_phongEffect.Begin(m_device.context());
 
@@ -335,19 +302,23 @@ void Scene::Render()
 	m_device.context()->ClearRenderTargetView(getDefaultRenderTarget().getRenderTarget(0), CLEAR_COLOR);
 	m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+
+
+	//draw scene
+	m_cbLightColor.Update(m_device.context(), WHITE_COLOR);
+	m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
+
 	//puma itself is not affecdted by shadow
-	m_cbSurfaceColor.Update(m_device.context(), LIGHT_COLOR);
 	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 	DrawPuma();
 
 	//draw non-shady surfaces
-	m_cbSurfaceColor.Update(m_device.context(), LIGHT_COLOR);
 	m_device.context()->OMSetDepthStencilState(m_dssRenderNoShadow.get(), 0);
 	DrawWalls();
 	DrawCylinder();
 
 	//draw shady surfaces
-	m_cbSurfaceColor.Update(m_device.context(), LIGHT_AMBIENT);
+	m_cbLightColor.Update(m_device.context(), BLACK_COLOR);
 	m_device.context()->OMSetDepthStencilState(m_dssRenderShadow.get(), 0);
 	DrawWalls();
 	DrawCylinder();
@@ -379,26 +350,26 @@ void Scene::DrawMirroredWorld(XMMATRIX m_view)
 
 void Scene::DrawPuma()
 {
-	//m_cbSurfaceColor.Update(m_device.context(), PUMA_COLOR);
+	m_cbSurfaceColor.Update(m_device.context(), PUMA_COLOR);
 	for (size_t i = 0; i < 6; i++)
 		DrawMesh(m_puma[i], m_pumaMtx[i]);
-	//m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
+	m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
 }
 
 
 void Scene::DrawWalls()
 {
-	for (auto i = 4; i < 5; ++i)
+	for (auto i = 0; i < 6; ++i)
 	{
-		//m_cbSurfaceColor.Update(m_device.context(), WALLS_COLORS[i]);
+		m_cbSurfaceColor.Update(m_device.context(), WALLS_COLORS[i]);
 		DrawMesh(m_wall, m_wallsMtx[i]);
 	}
-	//m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
+	m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
 }
 
 void Scene::DrawCylinder()
 {
-	//DrawMesh(m_cylinder, m_cylinderMtx);
+	DrawMesh(m_cylinder, m_cylinderMtx);
 }
 
 void Scene::DrawPlateFront()
