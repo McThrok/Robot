@@ -8,7 +8,7 @@ using namespace gk2;
 using namespace DirectX;
 using namespace std;
 
-const XMFLOAT4 Scene::LIGHT_POS = { 1.0f, 1.0f, 1.0f, 1.0f };
+const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
 const unsigned int Scene::BS_MASK = 0xffffffff;
 const XMFLOAT4 Scene::WHITE_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
 const XMFLOAT4 Scene::PUMA_COLOR = { 125.0f / 255.0f, 167.0f / 255.0f, 216.0f / 255.0f, 100.0f / 255.0f };
@@ -71,6 +71,11 @@ Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"R
 	XMMATRIX m = XMLoadFloat4x4(&m_plateMtx[0]);
 	XMMATRIX m_inverse = XMMatrixInverse(nullptr, m);
 	XMStoreFloat4x4(&m_mirrorMtx, m_inverse * m_scale * m);
+
+	// Cylinder
+	tie(vertices, indices) = MeshLoader::CreateCylinder(0.3f, 1.0f, 20);
+	m_cylinder = m_device.CreateMesh(indices, vertices);
+	XMStoreFloat4x4(&m_cylinderMtx, XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(0.7f, -0.5f, 1.0f));
 
 	// Puma
 	for (size_t i = 0; i < 6; i++)
@@ -226,8 +231,9 @@ void Scene::Render()
 	m_phongEffect.Begin(m_device.context());
 
 	DrawPuma();
-	DrawPlateBack();
 	DrawWalls();
+	DrawCylinder();
+	DrawPlateBack();
 }
 
 void mini::gk2::Scene::DrawMirroredWorld(XMMATRIX m_view)
@@ -244,7 +250,8 @@ void mini::gk2::Scene::DrawMirroredWorld(XMMATRIX m_view)
 	m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
 	DrawPuma();
 	DrawWalls();
-
+	DrawCylinder();
+	
 	m_device.context()->RSSetState(nullptr);
 	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 }
@@ -266,6 +273,11 @@ void Scene::DrawWalls()
 		DrawMesh(m_wall, m_wallsMtx[i]);
 	}
 	m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
+}
+
+void Scene::DrawCylinder()
+{
+	DrawMesh(m_cylinder, m_cylinderMtx);
 }
 
 void Scene::DrawPlateFront()
