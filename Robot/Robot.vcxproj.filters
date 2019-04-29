@@ -53,18 +53,13 @@
     <ClInclude Include="Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PumaData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Edge.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PhongEffect.h">
       <Filter>Header Files\Effects</Filter>
     </ClInclude>
     <ClInclude Include="TexturedEffect.h">
       <Filter>Header Files\Effects</Filter>
     </ClInclude>
+    <ClInclude Include="PumaData.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
