@@ -52,8 +52,8 @@ namespace mini::gk2
 		Mesh m_pumaShadow[6]; //uses m_pumaMtx
 		PumaData m_pumaData[6]; //uses m_pumaMtx
 		Mesh m_cylinder; //uses m_cylinderMtx
-		
 
+		dx_ptr<ID3D11BlendState> m_bsNoDraw;
 		dx_ptr<ID3D11DepthStencilState> m_dssInitShadow;
 		dx_ptr<ID3D11RasterizerState> m_rsInitShadow;
 		dx_ptr<ID3D11DepthStencilState> m_dssRenderShadow;

@@ -1,4 +1,4 @@
-﻿#include <array>
+#include <array>
 #include "Scene.h"
 #include "meshLoader.h"
 #include <DirectXMath.h>
@@ -27,16 +27,16 @@ const XMFLOAT4 Scene::WALLS_COLORS[] = {
 };
 
 Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"Robot"),
-	//Constant Buffers
-	m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
-	m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()), 
-	m_cbMirrorTexMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
-	m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
-	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
-	m_cbLightColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
-	m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>()),
-	//Textures
-	m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_texture.png"))
+//Constant Buffers
+m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+m_cbMirrorTexMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
+m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
+m_cbLightColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
+m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>()),
+//Textures
+m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_texture.png"))
 {
 	//Projection matrix
 	auto s = m_window.getClientSize();
@@ -114,7 +114,7 @@ Scene::Scene(HINSTANCE appInstance) : Gk2ExampleBase(appInstance, 1280, 720, L"R
 	XMFLOAT4X4 tempMtx;
 	XMStoreFloat4x4(&tempMtx, XMMatrixIdentity());
 	m_cbMirrorTexMtx.Update(m_device.context(), tempMtx);
-	
+
 	m_mirrorTexturedEffect = TexturedEffect(m_device.CreateVertexShader(vsCode), m_device.CreatePixelShader(psCode),
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbMirrorTexMtx, m_samplerWrap, m_mirrorTexture);
 
@@ -135,8 +135,13 @@ void  Scene::CreateRenderStates()
 	BlendDescription bsDesc;
 	m_bsAlpha = m_device.CreateBlendState(bsDesc.AlphaBlendDescription());
 
+	//m_bdNoDraw
+	BlendDescription desc = desc.AdditiveBlendDescription();
+	desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
+	m_bsNoDraw = m_device.CreateBlendState(desc);
+
 	//m_rsInitShadow
-	auto rs = RasterizerDescription(true);
+	RasterizerDescription rs = RasterizerDescription(true);
 	rs.CullMode = D3D11_CULL_NONE;
 	m_rsInitShadow = m_device.CreateRasterizerState(rs);
 
@@ -248,21 +253,20 @@ void Scene::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
 //void Scene::Render()
 //{
 //	Gk2ExampleBase::Render();
+//		m_cbLightColor.Update(m_device.context(), WHITE_COLOR);
+//		m_cbSurfaceColor.Update(m_device.context(), WHITE_COLOR);
 //
 //	XMMATRIX m_view = m_camera.getViewMatrix();
 //	XMFLOAT4X4 old_view;
 //	XMStoreFloat4x4(&old_view, m_view);
 //	UpdateCameraCB(old_view);
 //
-//	DrawMirroredWorld(m_view);
-//	
-//	UpdateCameraCB(old_view);
 //
-//	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
-//	m_mirrorTexturedEffect.SetTexture(m_mirrorTexture);
-//	m_mirrorTexturedEffect.Begin(m_device.context());
-//	DrawMesh(m_plate[0], m_plateMtx[0]);
-//	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+//	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+//	//m_mirrorTexturedEffect.SetTexture(m_mirrorTexture);
+//	//m_mirrorTexturedEffect.Begin(m_device.context());
+//	//DrawMesh(m_plate[0], m_plateMtx[0]);
+//	//m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 //
 //	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 //	m_phongEffect.Begin(m_device.context());
@@ -270,6 +274,11 @@ void Scene::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
 //	DrawPuma();
 //	DrawPlateBack();
 //	DrawWalls();
+//
+//	
+//	DrawMirroredWorld(m_view);
+//	
+//	UpdateCameraCB(old_view);
 //}
 
 
@@ -285,6 +294,7 @@ void Scene::Render()
 
 	m_phongEffect.Begin(m_device.context());
 
+	m_device.context()->OMSetBlendState(m_bsNoDraw.get(), nullptr, BS_MASK);
 	//fill z-buffer
 	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 	DrawWalls();
@@ -294,15 +304,13 @@ void Scene::Render()
 	//fill shadow stencil
 	m_device.context()->RSSetState(m_rsInitShadow.get());
 	m_device.context()->OMSetDepthStencilState(m_dssInitShadow.get(), 0);
-	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+
 	DrawShadowVolumes();
 	m_device.context()->RSSetState(nullptr);
+	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 
-	//clear colors and z buffer, not stencil
-	m_device.context()->ClearRenderTargetView(getDefaultRenderTarget().getRenderTarget(0), CLEAR_COLOR);
+	//clear z-buffer, not stencil
 	m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-
 
 	//draw scene
 	m_cbLightColor.Update(m_device.context(), WHITE_COLOR);
@@ -316,12 +324,24 @@ void Scene::Render()
 	m_device.context()->OMSetDepthStencilState(m_dssRenderNoShadow.get(), 0);
 	DrawWalls();
 	DrawCylinder();
+	DrawPlateBack();
 
 	//draw shady surfaces
 	m_cbLightColor.Update(m_device.context(), BLACK_COLOR);
 	m_device.context()->OMSetDepthStencilState(m_dssRenderShadow.get(), 0);
 	DrawWalls();
 	DrawCylinder();
+	DrawPlateBack();
+
+	m_cbLightColor.Update(m_device.context(), WHITE_COLOR);
+	DrawMirroredWorld(m_view);
+	UpdateCameraCB(old_view);
+
+	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+	m_mirrorTexturedEffect.SetTexture(m_mirrorTexture);
+	m_mirrorTexturedEffect.Begin(m_device.context());
+	DrawMesh(m_plate[0], m_plateMtx[0]);
+	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 }
 
 void Scene::DrawMirroredWorld(XMMATRIX m_view)
@@ -343,7 +363,7 @@ void Scene::DrawMirroredWorld(XMMATRIX m_view)
 	DrawPuma();
 	DrawWalls();
 	DrawCylinder();
-	
+
 	m_device.context()->RSSetState(nullptr);
 	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 }
