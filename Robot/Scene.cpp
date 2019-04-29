@@ -264,66 +264,98 @@ void Scene::Render()
 	DrawMesh(m_plate[0], m_plateMtx[0]);
 	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
 
-	//DrawShadowVolumes();
-
-
-	//m_cbSurfaceColor.Update(m_device.context(), MIRROR_COLOR);
-	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
-	//DrawMesh(m_plate[0], m_plateMtx[0]);
-	//m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
-
-
-	//m_device.context()->OMSetDepthStencilState(nullptr, 0);
-
-	//m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-
-	//BlendDescription desc;
-	//desc.RenderTarget[0].BlendEnable = true;
-	//desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	//desc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	//desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-
-	//m_device.CreateRasterizerState()
-
-	//m_device.context()->OMSetBlendState(m_device.CreateBlendState(desc).get(), nullptr, 0);
-
+	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 	m_phongEffect.Begin(m_device.context());
 
-	//fill z-buffer
-	m_device.context()->OMSetDepthStencilState(nullptr, 0);
-	DrawFloor();
 	DrawPuma();
-
-	//fill shadow stencil
-	m_device.context()->RSSetState(m_rsInitShadow.get());
-	m_device.context()->OMSetDepthStencilState(m_dssInitShadow.get(), 0);
-	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
-	DrawShadowVolumes();
-	m_device.context()->RSSetState(nullptr);
-
-	//clear colors and z buffer, not stencil
-	m_device.context()->ClearRenderTargetView(getDefaultRenderTarget().getRenderTarget(0), CLEAR_COLOR);
-	m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	//puma itself is not affecdted by shadow
-	m_cbSurfaceColor.Update(m_device.context(), LIGHT_COLOR);
-	m_device.context()->OMSetDepthStencilState(nullptr, 0);
-	DrawPuma();
-
-	//draw non-shady surfaces
-	m_cbSurfaceColor.Update(m_device.context(), LIGHT_COLOR);
-	m_device.context()->OMSetDepthStencilState(m_dssRenderNoShadow.get(), 0);
-	DrawFloor();
-
-	//draw shady surfaces
-	m_cbSurfaceColor.Update(m_device.context(), LIGHT_AMBIENT);
-	m_device.context()->OMSetDepthStencilState(m_dssRenderShadow.get(), 0);
-	DrawFloor();
+	DrawPlateBack();
+	DrawWalls();
 }
+
+//
+//void Scene::Render()
+//{
+//	Gk2ExampleBase::Render();
+//
+//	XMMATRIX m_view = m_camera.getViewMatrix();
+//	//DrawMirroredWorld(m_view);
+//
+//	//m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+//
+//	XMFLOAT4X4 old_view;
+//	XMStoreFloat4x4(&old_view, m_view);
+//	UpdateCameraCB(old_view);
+//
+//	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+//	//m_texturedEffect.SetTexture(m_mirrorTexture);
+//	//m_texturedEffect.Begin(m_device.context());
+//	//DrawMesh(m_plate[0], m_plateMtx[0]);
+//	//m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+//
+//	//DrawShadowVolumes();
+//
+//
+//	//m_cbSurfaceColor.Update(m_device.context(), MIRROR_COLOR);
+//	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+//	//DrawMesh(m_plate[0], m_plateMtx[0]);
+//	//m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+//
+//
+//	//m_device.context()->OMSetDepthStencilState(nullptr, 0);
+//
+//	//m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+//
+//
+//	//BlendDescription desc;
+//	//desc.RenderTarget[0].BlendEnable = true;
+//	//desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+//	//desc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+//	//desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+//
+//	//m_device.CreateRasterizerState()
+//
+//	//m_device.context()->OMSetBlendState(m_device.CreateBlendState(desc).get(), nullptr, 0);
+//
+//	m_phongEffect.Begin(m_device.context());
+//
+//	//fill z-buffer
+//	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+//	DrawFloor();
+//	DrawPuma();
+//
+//	//fill shadow stencil
+//	m_device.context()->RSSetState(m_rsInitShadow.get());
+//	m_device.context()->OMSetDepthStencilState(m_dssInitShadow.get(), 0);
+//	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+//	DrawShadowVolumes();
+//	m_device.context()->RSSetState(nullptr);
+//
+//	//clear colors and z buffer, not stencil
+//	m_device.context()->ClearRenderTargetView(getDefaultRenderTarget().getRenderTarget(0), CLEAR_COLOR);
+//	m_device.context()->ClearDepthStencilView(getDefaultRenderTarget().getDepthStencilBuffer(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+//
+//	//puma itself is not affecdted by shadow
+//	m_cbSurfaceColor.Update(m_device.context(), LIGHT_COLOR);
+//	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+//	DrawPuma();
+//
+//	//draw non-shady surfaces
+//	m_cbSurfaceColor.Update(m_device.context(), LIGHT_COLOR);
+//	m_device.context()->OMSetDepthStencilState(m_dssRenderNoShadow.get(), 0);
+//	DrawFloor();
+//
+//	//draw shady surfaces
+//	m_cbSurfaceColor.Update(m_device.context(), LIGHT_AMBIENT);
+//	m_device.context()->OMSetDepthStencilState(m_dssRenderShadow.get(), 0);
+//	DrawFloor();
+//}
 
 void Scene::DrawMirroredWorld(XMMATRIX m_view)
 {
+	XMFLOAT4X4 old_view;
+	XMStoreFloat4x4(&old_view, m_view);
+	UpdateCameraCB(old_view);
+
 	m_device.context()->OMSetDepthStencilState(m_dssWrite.get(), 1);
 	DrawPlateFront();
 	m_device.context()->OMSetDepthStencilState(m_dssTest.get(), 1);
@@ -423,7 +455,7 @@ vector<Edge> Scene::GetContourEdges(int partIdx, XMVECTOR &light)
 		}
 	}
 
-	return contour;
+	return move(contour);
 }
 
 bool Scene::IsFrontFaceForLight(int partIdx, int tglIdx, XMVECTOR &light) {
@@ -497,7 +529,7 @@ void Scene::AddVolumeCupTriangle(int partIdx, int tglIdx, XMVECTOR &light, vecto
 
 	int n = vertices.size();
 	for (size_t i = 0; i < 3; i++)
-		indices.push_back(n + i);
+		indices.push_back(n);
 
 	VertexPositionNormal a = part.verts[part.indices[3 * tglIdx]];
 	VertexPositionNormal b = part.verts[part.indices[3 * tglIdx + 1]];
