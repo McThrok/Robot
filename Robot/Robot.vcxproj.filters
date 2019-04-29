@@ -7,15 +7,6 @@
     <FxCompile Include="phongVS.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="shadowPS.hlsl">
-      <Filter>Resource Files\shadows</Filter>
-    </FxCompile>
-    <FxCompile Include="shadowVS.hlsl">
-      <Filter>Resource Files\shadows</Filter>
-    </FxCompile>
-    <FxCompile Include="shadowGS.hlsl">
-      <Filter>Resource Files\shadows</Filter>
-    </FxCompile>
     <FxCompile Include="texturedPS.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
@@ -59,7 +50,9 @@
     <ClInclude Include="TexturedEffect.h">
       <Filter>Header Files\Effects</Filter>
     </ClInclude>
-    <ClInclude Include="PumaData.h" />
+    <ClInclude Include="PumaData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -70,9 +63,6 @@
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{a06f4a20-625a-49c1-a569-3c9cc0e8e01f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\shadows">
-      <UniqueIdentifier>{3e37069f-6548-44b0-8830-42c87529fa77}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Effects">
       <UniqueIdentifier>{313976c2-7304-4481-9d00-4b88ffdc8b59}</UniqueIdentifier>

@@ -28,21 +28,21 @@ namespace mini::gk2
 		static const XMFLOAT4 LIGHT_POS;
 		static const float CLEAR_COLOR[4];
 		static const float VOLUME_OFFSET;
-		static const DirectX::XMFLOAT4 MIRROR_COLOR;
+		static const XMFLOAT4 MIRROR_COLOR;
 		static const unsigned int BS_MASK;
 		static const XMFLOAT4 BLACK_COLOR;
-		static const DirectX::XMFLOAT4 WHITE_COLOR;
-		static const DirectX::XMFLOAT4 PUMA_COLOR;
-		static const DirectX::XMFLOAT4 WALLS_COLORS[6];
+		static const XMFLOAT4 WHITE_COLOR;
+		static const XMFLOAT4 PUMA_COLOR;
+		static const XMFLOAT4 WALLS_COLORS[6];
 #pragma endregion
 
 		ConstantBuffer<XMFLOAT4X4> m_cbWorldMtx, //vertex shader constant buffer slot 0
 			m_cbProjMtx;	//vertex shader constant buffer slot 2 & geometry shader constant buffer slot 0
-		ConstantBuffer<DirectX::XMFLOAT4X4, 2> m_cbViewMtx; //vertex shader constant buffer slot 1
-		ConstantBuffer<DirectX::XMFLOAT4> m_cbSurfaceColor;	//pixel shader constant buffer slot 0
-		ConstantBuffer<DirectX::XMFLOAT4> m_cbLightColor;	//pixel shader constant buffer slot 0
-		ConstantBuffer<DirectX::XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
-		ConstantBuffer<DirectX::XMFLOAT4X4> m_cbMirrorTexMtx;
+		ConstantBuffer<XMFLOAT4X4, 2> m_cbViewMtx; //vertex shader constant buffer slot 1
+		ConstantBuffer<XMFLOAT4> m_cbSurfaceColor;	//pixel shader constant buffer slot 0
+		ConstantBuffer<XMFLOAT4> m_cbLightColor;	//pixel shader constant buffer slot 0
+		ConstantBuffer<XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
+		ConstantBuffer<XMFLOAT4X4> m_cbMirrorTexMtx;
 
 		double angle = 0;
 
@@ -65,20 +65,20 @@ namespace mini::gk2
 		dx_ptr<ID3D11InputLayout> m_inputlayout;
 		dx_ptr<ID3D11SamplerState> m_samplerWrap;
 
-		DirectX::XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx, m_cylinderMtx;
+		XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx, m_cylinderMtx;
 
 		PhongEffect m_phongEffect;
 		TexturedEffect m_mirrorTexturedEffect;
 
 		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
 
-		void UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx);
+		void UpdateCameraCB(XMFLOAT4X4 cameraMtx);
 		void UpdateRobotMtx(float dt);
 		void InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 			float &a1, float &a2, float &a3, float &a4, float &a5);
 
-		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
-		void DrawMirroredWorld(DirectX::XMMATRIX m_view);
+		void DrawMesh(const Mesh& m, XMFLOAT4X4 worldMtx);
+		void DrawMirroredWorld(XMMATRIX m_view);
 		void DrawPuma();
 		void DrawWalls();
 		void DrawCylinder();
@@ -86,7 +86,9 @@ namespace mini::gk2
 		void DrawPlateBack();
 		void DrawShadowVolumes();
 
-		void FillStensilShadows();
+		void RenderScene();
+		void RenderMirror(XMMATRIX m_view);
+		void FillStencilShadows();
 
 		void UpdateShadowVolume(int partIdx);
 		vector<Edge> GetContourEdges(int partIdx, XMVECTOR &light);
