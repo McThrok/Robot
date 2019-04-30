@@ -10,7 +10,7 @@ using namespace DirectX;
 using namespace std;
 
 const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
-const float Scene::VOLUME_OFFSET = 2.0f;
+const float Scene::VOLUME_OFFSET = 10.0f;
 const float Scene::CLEAR_COLOR[4] = { 0.5f, 0.5f, 1.0f, 1.0f };
 const XMFLOAT4 Scene::MIRROR_COLOR = { XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f) };
 const unsigned int Scene::BS_MASK = 0xffffffff;
@@ -156,9 +156,9 @@ void  Scene::CreateRenderStates()
 	dssDesc.StencilEnable = true;
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	dssDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	dssDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_DECR;
+	dssDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
 	dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	dssDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
+	dssDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
 	m_dssInitShadow = m_device.CreateDepthStencilState(dssDesc);
 
 	//m_dssRenderNoShadow 
@@ -266,9 +266,9 @@ void Scene::Render()
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
 
-	FillStencilShadows();
 
 	m_phongEffect.Begin(m_device.context());
+	FillStencilShadows();
 	RenderScene();
 	RenderMirror(m_view);
 }
@@ -282,6 +282,7 @@ void Scene::FillStencilShadows()
 	DrawWalls();
 	DrawCylinder();
 	DrawPuma();
+	DrawLight();
 
 	//fill shadow stencil
 	m_device.context()->RSSetState(m_rsInitShadow.get());
@@ -518,7 +519,7 @@ void Scene::AddVolumeCupTriangle(int partIdx, int tglIdx, XMVECTOR &light, vecto
 
 	int n = vertices.size();
 	for (size_t i = 0; i < 3; i++)
-		indices.push_back(n);
+		indices.push_back(n+i);
 
 	VertexPositionNormal a = part.verts[part.indices[3 * tglIdx]];
 	VertexPositionNormal b = part.verts[part.indices[3 * tglIdx + 1]];
