@@ -1,12 +1,12 @@
 #pragma once
+#include <DirectXMath.h>
 #include "gk2ExampleBase.h"
 #include "constantBuffer.h"
 #include "mesh.h"
-#include "PhongEffect.h"
 #include "PumaData.h"
-#include <DirectXMath.h>
+#include "PhongEffect.h"
 #include "TexturedEffect.h"
-
+#include "ParticleSystem.h"
 using namespace DirectX;
 using namespace std;
 
@@ -59,7 +59,7 @@ namespace mini::gk2
 		dx_ptr<ID3D11RasterizerState> m_rsInitShadow;
 		dx_ptr<ID3D11DepthStencilState> m_dssRenderShadow;
 		dx_ptr<ID3D11DepthStencilState> m_dssRenderNoShadow;
-		dx_ptr<ID3D11DepthStencilState> m_dssWrite;
+		dx_ptr<ID3D11DepthStencilState> m_dssWrite, m_dssNoWrite, m_dssTestNoWrite;
 		dx_ptr<ID3D11DepthStencilState> m_dssTest;
 		dx_ptr<ID3D11RasterizerState> m_rsCCW;
 		dx_ptr<ID3D11BlendState> m_bsAlpha;
@@ -70,11 +70,13 @@ namespace mini::gk2
 
 		PhongEffect m_phongEffect;
 		TexturedEffect m_mirrorTexturedEffect;
+		ParticleSystem m_particles;
 
 		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
 
 		void UpdateCameraCB(XMFLOAT4X4 cameraMtx);
 		void UpdateRobotMtx(float dt);
+		void UpdateParticles(float dt);
 		void InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 			float &a1, float &a2, float &a3, float &a4, float &a5);
 
@@ -87,6 +89,8 @@ namespace mini::gk2
 		void DrawPlateFront();
 		void DrawPlateBack();
 		void DrawShadowVolumes();
+		void DrawMirroredParticles();
+		void DrawParticles();
 
 		void RenderScene();
 		void RenderMirror(XMMATRIX m_view);
