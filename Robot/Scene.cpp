@@ -9,9 +9,11 @@ using namespace gk2;
 using namespace DirectX;
 using namespace std;
 
-const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
-const float Scene::VOLUME_OFFSET = 4.0f;
 const unsigned int Scene::BS_MASK = 0xffffffff;
+const float Scene::VOLUME_OFFSET = 4.0f;
+const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
+const XMVECTOR Scene::MIRROR_AXIS = { sqrt(3), 1, 0 };
+
 const XMFLOAT4 Scene::WHITE_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
 const XMFLOAT4 Scene::BLACK_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
 const XMFLOAT4 Scene::PUMA_COLOR = { 125.0f / 255.0f, 167.0f / 255.0f, 216.0f / 255.0f, 100.0f / 255.0f };
@@ -193,22 +195,26 @@ void Scene::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
 void Scene::Update(const Clock& c)
 {
 	double dt = c.getFrameTime();
+	angle += dt;
+
 	HandleCameraInput(dt);
-	UpdateRobotMtx(dt);
-	UpdateParticles(dt);
+
+	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
+		* XMMatrixRotationAxis(MIRROR_AXIS, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
+	UpdateRobotMtx(dt, pos);
+
+	XMFLOAT3 emitterPos;
+	XMStoreFloat3(&emitterPos, pos);
+	UpdateParticles(dt, emitterPos);
 
 	for (size_t i = 0; i < 6; i++)
 		UpdateShadowVolume(i);
 }
 
-void Scene::UpdateRobotMtx(float dt)
+void Scene::UpdateRobotMtx(float dt, XMVECTOR pos)
 {
-	angle += dt;
-	XMVECTOR axis = { sqrt(3), 1, 0 };
-	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
-		* XMMatrixRotationAxis(axis, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
 	float a1, a2, a3, a4, a5;
-	InverseKinematics(pos, axis, a1, a2, a3, a4, a5);
+	InverseKinematics(pos, MIRROR_AXIS, a1, a2, a3, a4, a5);
 
 	XMStoreFloat4x4(&m_pumaMtx[1], XMMatrixRotationY(a1));
 
@@ -229,14 +235,9 @@ void Scene::UpdateRobotMtx(float dt)
 		* XMMatrixRotationZ(a5) * XMMatrixTranslation(-1.72f, 0.27f, -0.26f) * m);
 }
 
-void mini::gk2::Scene::UpdateParticles(float dt)
+void Scene::UpdateParticles(float dt, XMFLOAT3 emitterPos)
 {
-	XMVECTOR axis = { sqrt(3), 1, 0 };
-	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
-		* XMMatrixRotationAxis(axis, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
-	XMFLOAT3 emmiterPos;
-	XMStoreFloat3(&emmiterPos, pos);
-	m_particles.Update(m_device.context(), static_cast<float>(dt), m_camera.GetPosition(), emmiterPos);
+	m_particles.Update(m_device.context(), static_cast<float>(dt), m_camera.GetPosition(), emitterPos);
 }
 
 void Scene::InverseKinematics(XMVECTOR pos, XMVECTOR normal,

@@ -24,12 +24,11 @@ namespace mini::gk2
 
 	private:
 #pragma region CONSTANTS
-
-		static const XMFLOAT4 LIGHT_POS;
-		static const float CLEAR_COLOR[4];
-		static const float VOLUME_OFFSET;
-		static const XMFLOAT4 MIRROR_COLOR;
 		static const unsigned int BS_MASK;
+		static const float VOLUME_OFFSET;
+		static const XMFLOAT4 LIGHT_POS;
+		static const XMVECTOR MIRROR_AXIS;
+
 		static const XMFLOAT4 BLACK_COLOR;
 		static const XMFLOAT4 WHITE_COLOR;
 		static const XMFLOAT4 PUMA_COLOR;
@@ -65,6 +64,7 @@ namespace mini::gk2
 		dx_ptr<ID3D11BlendState> m_bsAlpha;
 		dx_ptr<ID3D11InputLayout> m_inputlayout;
 		dx_ptr<ID3D11SamplerState> m_samplerWrap;
+		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
 
 		XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx, m_cylinderMtx, m_lightMtx;
 
@@ -72,11 +72,9 @@ namespace mini::gk2
 		TexturedEffect m_mirrorTexturedEffect;
 		ParticleSystem m_particles;
 
-		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
-
 		void UpdateCameraCB(XMFLOAT4X4 cameraMtx);
-		void UpdateRobotMtx(float dt);
-		void UpdateParticles(float dt);
+		void UpdateRobotMtx(float dt, XMVECTOR pos);
+		void UpdateParticles(float dt, XMFLOAT3 emitterPos);
 		void InverseKinematics(XMVECTOR pos, XMVECTOR normal,
 			float &a1, float &a2, float &a3, float &a4, float &a5);
 
