@@ -181,6 +181,7 @@
     <ClInclude Include="meshLoader.h" />
     <ClInclude Include="MovableCamera.h" />
     <ClInclude Include="PhongEffect.h" />
+    <ClInclude Include="PumaData.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="TexturedEffect.h" />
   </ItemGroup>

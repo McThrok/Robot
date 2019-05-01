@@ -201,13 +201,13 @@ MeshLoader::vpn_mesh_t MeshLoader::LoadMesh(const std::wstring& fileName)
 	return{ move(verts), move(inds) };
 }
 
-MeshLoader::vpn_mesh_t MeshLoader::LoadPumaMesh(const std::wstring& fileName)
+PumaData MeshLoader::LoadPumaMesh(const std::wstring& fileName)
 {
 	ifstream input;
 	input.exceptions(ios::badbit | ios::failbit | ios::eofbit);
 	input.open(fileName);
 
-	int vertices_count, vert_nr, vn, in;
+	int vertices_count, vert_nr, vn, in, en;
 
 	input >> vertices_count;
 	vector<DirectX::XMFLOAT3> vertices(vertices_count);
@@ -234,5 +234,25 @@ MeshLoader::vpn_mesh_t MeshLoader::LoadPumaMesh(const std::wstring& fileName)
 	for (auto i = 0; i < in; ++i)
 		input >> inds[i];
 
-	return{ move(verts), move(inds) };
+
+
+	input >> en;
+	vector<Edge> edges(en);
+	for (auto i = 0; i < en; ++i)
+	{
+		Edge e;
+
+		input >> vert_nr;
+		e.PositionRight = vertices[vert_nr];
+
+		input >> vert_nr;
+		e.PositionLeft = vertices[vert_nr];
+
+		input >> e.TriangleIdxDown;
+		input >> e.TriangleIdxTop;
+
+		edges[i] = e;
+	}
+
+	return{ move(verts), move(inds), move(edges) };
 }
