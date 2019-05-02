@@ -87,7 +87,7 @@ namespace mini
 			ParticleSystem& operator=(ParticleSystem&& other) = default;
 
 			void Update(const dx_ptr<ID3D11DeviceContext>& context, float dt, DirectX::XMFLOAT4 cameraPosition,
-				DirectX::XMFLOAT3 emitterPos);
+				DirectX::XMFLOAT3 emitterPos, float angle);
 			void Render(const dx_ptr<ID3D11DeviceContext>& context) const;
 
 		private:
@@ -118,8 +118,8 @@ namespace mini
 
 			std::default_random_engine m_random;
 
-			DirectX::XMFLOAT3 RandomVelocity();
-			void AddNewParticle();
+			DirectX::XMFLOAT3 RandomVelocity(float angle);
+			void AddNewParticle(float angle);
 			static void UpdateParticle(Particle& p, float dt);
 			void UpdateVertexBuffer(const dx_ptr<ID3D11DeviceContext>& context, DirectX::XMFLOAT4 cameraPosition);
 		};

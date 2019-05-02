@@ -18,7 +18,7 @@ struct PSInput
 	float2 tex2: TEXCOORD1;
 };
 
-static const float TimeToLive = 4.0f;
+static const float TimeToLive = 0.8f;
 
 [maxvertexcount(4)]
 void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
@@ -30,7 +30,7 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	float dy = (cosa + sina) * 0.5 * i.size;
 	PSInput o = (PSInput)0;
 
-	// TODO : 2.28 Initialize 4 vertices to make a bilboard and append them to the ostream
+	// Initialize 4 vertices to make a bilboard and append them to the ostream
 	o.tex2.x = i.age / TimeToLive;
 	o.tex2.y = 0.5f;
 

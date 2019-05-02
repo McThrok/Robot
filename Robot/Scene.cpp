@@ -72,12 +72,14 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	for (size_t i = 0; i < 2; i++)
 		m_plate[i] = m_device.CreateMesh(indices, vertices);
 
-	XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationY(-XM_PI / 3)
+	//XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationY(-XM_PI / 3)
+	XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationY(-XM_PIDIV2)
 		* XMMatrixRotationX(XM_PIDIV2)
 		* XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
-	XMStoreFloat4x4(&m_plateMtx[1], XMMatrixRotationY(2 * XM_PI / 3)
+	//XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationY(-XM_PI / 3)
+	XMStoreFloat4x4(&m_plateMtx[1], XMMatrixRotationY(XM_PIDIV2)
 		* XMMatrixRotationX(XM_PIDIV2)
-		* XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
+		* XMMatrixTranslation(-1.55f, 0.2f, 0.0f));
 
 	XMMATRIX m_scale = XMMatrixScaling(1.0f, 1.0f, -1.0f);
 	XMMATRIX m = XMLoadFloat4x4(&m_plateMtx[0]);
@@ -200,7 +202,9 @@ void Scene::Update(const Clock& c)
 	HandleCameraInput(dt);
 
 	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
-		* XMMatrixRotationAxis(MIRROR_AXIS, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
+		* XMMatrixRotationAxis({ 1, 0, 0 }, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
+	/*XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
+		* XMMatrixRotationAxis(MIRROR_AXIS, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));*/
 	UpdateRobotMtx(dt, pos);
 
 	XMFLOAT3 emitterPos;
@@ -237,7 +241,7 @@ void Scene::UpdateRobotMtx(float dt, XMVECTOR pos)
 
 void Scene::UpdateParticles(float dt, XMFLOAT3 emitterPos)
 {
-	m_particles.Update(m_device.context(), static_cast<float>(dt), m_camera.GetPosition(), emitterPos);
+	m_particles.Update(m_device.context(), static_cast<float>(dt), m_camera.GetPosition(), emitterPos, angle);
 }
 
 void Scene::InverseKinematics(XMVECTOR pos, XMVECTOR normal,
