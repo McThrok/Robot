@@ -16,7 +16,7 @@ const D3D11_INPUT_ELEMENT_DESC ParticleVertex::Layout[4] =
 };
 
 const XMFLOAT3 ParticleSystem::EMITTER_DIR = XMFLOAT3(0.0f, 1.0f, 0.0f);
-const float ParticleSystem::TIME_TO_LIVE = 0.8f;
+const float ParticleSystem::TIME_TO_LIVE = 1.0f;
 const float ParticleSystem::EMISSION_RATE = 100.0f;
 const float ParticleSystem::MAX_ANGLE = XM_PIDIV2 / 9.0f;
 const float ParticleSystem::MIN_VELOCITY = 0.4f;
@@ -30,17 +30,20 @@ const int ParticleSystem::MAX_PARTICLES = 1000;
 const unsigned int ParticleSystem::STRIDE = sizeof(ParticleVertex);
 const unsigned int ParticleSystem::OFFSET = 0;
 
-ParticleEffect::ParticleEffect(dx_ptr<ID3D11VertexShader>&& vs, dx_ptr<ID3D11GeometryShader>&& gs, dx_ptr<ID3D11PixelShader>&& ps,
-	const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
+ParticleEffect::ParticleEffect(dx_ptr<ID3D11VertexShader>&& vs, dx_ptr<ID3D11GeometryShader>&& gs,
+	dx_ptr<ID3D11PixelShader>&& ps,	const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
+	const ConstantBuffer<DirectX::XMFLOAT4X4> plateView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
 	const dx_ptr<ID3D11SamplerState>& sampler, dx_ptr<ID3D11ShaderResourceView>&& colorMap,
 	dx_ptr<ID3D11ShaderResourceView>&& opacityMap)
-	: StaticEffect(BasicEffect(move(vs), move(ps)), GeometryShaderComponent(move(gs)), VSConstantBuffers{ cbView },
-		GSConstantBuffers{ cbProj }, PSSamplers{ sampler }, PSShaderResources{ colorMap, opacityMap })
+	: StaticEffect(BasicEffect(move(vs), move(ps)), GeometryShaderComponent(move(gs)), 
+		VSConstantBuffers{ cbView, plateView },	GSConstantBuffers{ cbProj }, 
+		PSSamplers{ sampler }, PSShaderResources{ colorMap, opacityMap })
 {
 }
 
 ParticleSystem::ParticleSystem(const DxDevice& device, const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
-	const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj, const dx_ptr<ID3D11SamplerState>& sampler,
+	const ConstantBuffer<DirectX::XMFLOAT4X4> plateView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
+	const dx_ptr<ID3D11SamplerState>& sampler,
 	DirectX::XMFLOAT3 emmiterPosition)
 	: m_emitterPos(emmiterPosition), m_particlesToCreate(0.0f), m_particlesCount(0), m_random(random_device{}())
 {
@@ -49,7 +52,7 @@ ParticleSystem::ParticleSystem(const DxDevice& device, const ConstantBuffer<Dire
 	auto gsCode = device.LoadByteCode(L"particleGS.cso");
 	auto psCode = device.LoadByteCode(L"particlePS.cso");
 	m_effect = ParticleEffect(device.CreateVertexShader(vsCode), device.CreateGeometryShader(gsCode),
-		device.CreatePixelShader(psCode), cbView, cbProj, sampler,
+		device.CreatePixelShader(psCode), cbView, plateView, cbProj, sampler,
 		device.CreateShaderResourceView(L"resources/textures/smoke.png"),
 		device.CreateShaderResourceView(L"resources/textures/smokecolors.png"));
 	m_inputLayout = device.CreateInputLayout<ParticleVertex>(vsCode);
@@ -95,23 +98,25 @@ void ParticleSystem::Render(const dx_ptr<ID3D11DeviceContext>& context) const
 
 XMFLOAT3 ParticleSystem::RandomVelocity(float angle)
 {
-	XMFLOAT3 v{ 1, -cos(angle), -sin(angle) };
+	//XMFLOAT3 v{ cos(angle), -sin(angle), 1};
+	XMFLOAT3 v{ 0, 0, -1};
 
-	bool sign = rand() % 2;
+	/*bool sign = rand() % 2;
 	if (sign == 0)
 	{
 		v.y *= -1;
-		v.z *= -1;
+		v.x *= -1;
 	}
 
-	auto velocity = XMLoadFloat3(&v);
+	XMVECTOR velocity = XMLoadFloat3(&v);
 	velocity = XMVector3Normalize(velocity);
-	XMStoreFloat3(&v, velocity);
+	XMStoreFloat3(&v, velocity);*/
 
-	static const uniform_real_distribution<float> angleDist(-0.9, 1.1);
-	float velocityMultiplyer = 3 * angleDist(m_random);
-	v.y *= velocityMultiplyer;
-	v.z *= velocityMultiplyer;
+	static const uniform_real_distribution<float> angleDist(-0.5, 0.5);
+	float velocityMultiplyer = angleDist(m_random);
+	v.y = velocityMultiplyer;
+	velocityMultiplyer = angleDist(m_random);
+	v.x = velocityMultiplyer;
 
 	return v;
 }
@@ -123,7 +128,8 @@ void ParticleSystem::AddNewParticle(float angle)
 	// Setup initial particle properties
 	p.Vertex.Age = 0;
 	p.Vertex.Size = PARTICLE_SIZE;
-	p.Vertex.Pos = m_emitterPos;
+	//p.Vertex.Pos = m_emitterPos;
+	p.Vertex.Pos = { 0.5f * sin(angle), 0.5f * cos(angle), 0 };
 	p.Vertex.Angle = 0;
 	p.Velocities.Velocity = RandomVelocity(angle);
 	p.Velocities.AngularVelocity = anglularVelDist(m_random);
@@ -135,7 +141,7 @@ void ParticleSystem::UpdateParticle(Particle& p, float dt)
 {
 	// Update particle properties
 	p.Vertex.Age += dt;
-	//	p.Vertex.Pos.x += p.Velocities.Velocity.x * dt;
+	p.Vertex.Pos.x += p.Velocities.Velocity.x * dt;
 	p.Vertex.Pos.y += p.Velocities.Velocity.y * dt;
 	p.Vertex.Pos.z += p.Velocities.Velocity.z * dt;
 	/*p.Vertex.Angle += p.Velocities.AngularVelocity * dt;

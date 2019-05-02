@@ -59,8 +59,9 @@ namespace mini
 
 			ParticleEffect() = default;
 
-			ParticleEffect(dx_ptr<ID3D11VertexShader>&& vs, dx_ptr<ID3D11GeometryShader>&& gs, dx_ptr<ID3D11PixelShader>&& ps,
-				const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
+			ParticleEffect(dx_ptr<ID3D11VertexShader>&& vs, dx_ptr<ID3D11GeometryShader>&& gs, 
+				dx_ptr<ID3D11PixelShader>&& ps,	const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
+				const ConstantBuffer<DirectX::XMFLOAT4X4> plateView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
 				const dx_ptr<ID3D11SamplerState>& sampler, dx_ptr<ID3D11ShaderResourceView>&& colorMap,
 				dx_ptr<ID3D11ShaderResourceView>&& opacityMap);
 
@@ -81,7 +82,8 @@ namespace mini
 			ParticleSystem(ParticleSystem&& other) = default;
 
 			ParticleSystem(const DxDevice& device, const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
-				const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj, const dx_ptr<ID3D11SamplerState>& sampler,
+				const ConstantBuffer<DirectX::XMFLOAT4X4> plateView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
+				const dx_ptr<ID3D11SamplerState>& sampler,
 				DirectX::XMFLOAT3 emmiterPosition);
 
 			ParticleSystem& operator=(ParticleSystem&& other) = default;

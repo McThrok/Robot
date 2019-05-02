@@ -42,6 +42,7 @@ namespace mini::gk2
 		ConstantBuffer<XMFLOAT4> m_cbLightColor;	//pixel shader constant buffer slot 0
 		ConstantBuffer<XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
 		ConstantBuffer<XMFLOAT4X4> m_cbMirrorTexMtx;
+		ConstantBuffer<XMFLOAT4X4> m_cbPlateMtx;
 
 		double angle = 0;
 

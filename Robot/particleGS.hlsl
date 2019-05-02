@@ -18,7 +18,7 @@ struct PSInput
 	float2 tex2: TEXCOORD1;
 };
 
-static const float TimeToLive = 0.8f;
+static const float TimeToLive = 1.0f;
 
 [maxvertexcount(4)]
 void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
