@@ -1,4 +1,9 @@
-cbuffer cbProj : register(b0) //Geometry Shader constant buffer slot 0
+cbuffer cbView : register(b0) //Vertex Shader constant buffer slot 1
+{
+	matrix viewMatrix;
+};
+
+cbuffer cbProj : register(b1) //Geometry Shader constant buffer slot 0
 {
 	matrix projMatrix;
 };

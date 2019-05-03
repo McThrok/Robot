@@ -31,18 +31,20 @@ const unsigned int ParticleSystem::STRIDE = sizeof(ParticleVertex);
 const unsigned int ParticleSystem::OFFSET = 0;
 
 ParticleEffect::ParticleEffect(dx_ptr<ID3D11VertexShader>&& vs, dx_ptr<ID3D11GeometryShader>&& gs,
-	dx_ptr<ID3D11PixelShader>&& ps,	const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
-	const ConstantBuffer<DirectX::XMFLOAT4X4> plateView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
+	dx_ptr<ID3D11PixelShader>&& ps, const ConstantBuffer<DirectX::XMFLOAT4X4> cbWorld,
+	const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
+	const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbPlate, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
 	const dx_ptr<ID3D11SamplerState>& sampler, dx_ptr<ID3D11ShaderResourceView>&& colorMap,
 	dx_ptr<ID3D11ShaderResourceView>&& opacityMap)
-	: StaticEffect(BasicEffect(move(vs), move(ps)), GeometryShaderComponent(move(gs)), 
-		VSConstantBuffers{ cbView, plateView },	GSConstantBuffers{ cbProj }, 
+	: StaticEffect(BasicEffect(move(vs), move(ps)), GeometryShaderComponent(move(gs)),
+		VSConstantBuffers{ cbWorld, cbView, cbPlate }, GSConstantBuffers{ cbView, cbProj },
 		PSSamplers{ sampler }, PSShaderResources{ colorMap, opacityMap })
 {
 }
 
-ParticleSystem::ParticleSystem(const DxDevice& device, const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
-	const ConstantBuffer<DirectX::XMFLOAT4X4> plateView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
+ParticleSystem::ParticleSystem(const DxDevice& device, const ConstantBuffer<DirectX::XMFLOAT4X4> cbWorld, 
+	const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
+	const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbPlate, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
 	const dx_ptr<ID3D11SamplerState>& sampler,
 	DirectX::XMFLOAT3 emmiterPosition)
 	: m_emitterPos(emmiterPosition), m_particlesToCreate(0.0f), m_particlesCount(0), m_random(random_device{}())
@@ -52,7 +54,7 @@ ParticleSystem::ParticleSystem(const DxDevice& device, const ConstantBuffer<Dire
 	auto gsCode = device.LoadByteCode(L"particleGS.cso");
 	auto psCode = device.LoadByteCode(L"particlePS.cso");
 	m_effect = ParticleEffect(device.CreateVertexShader(vsCode), device.CreateGeometryShader(gsCode),
-		device.CreatePixelShader(psCode), cbView, plateView, cbProj, sampler,
+		device.CreatePixelShader(psCode),cbWorld, cbView, cbPlate, cbProj, sampler,
 		device.CreateShaderResourceView(L"resources/textures/smoke.png"),
 		device.CreateShaderResourceView(L"resources/textures/smokecolors.png"));
 	m_inputLayout = device.CreateInputLayout<ParticleVertex>(vsCode);

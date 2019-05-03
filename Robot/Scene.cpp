@@ -31,7 +31,7 @@ m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 m_cbMirrorTexMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
-m_cbPlateMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
+m_cbPlateMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
 m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 m_cbLightColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>()),
@@ -126,8 +126,14 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbMirrorTexMtx, m_samplerWrap, m_mirrorTexture);
 
 	// Particles
-	m_cbPlateMtx.Update(m_device.context(), m_plateMtx[0]);
-	m_particles = ParticleSystem(m_device, m_cbViewMtx, m_cbPlateMtx, m_cbProjMtx, m_samplerWrap, XMFLOAT3(1.3f, -0.6f, 1.0f));
+
+	XMMATRIX mtx = XMLoadFloat4x4(&m_plateMtx[0]);
+	auto invMtx = XMMatrixInverse(nullptr, mtx);
+	XMFLOAT4X4 view[2] = { m_plateMtx[0] };
+	XMStoreFloat4x4(view + 1, invMtx);
+	m_cbPlateMtx.Update(m_device.context(), view);
+
+	m_particles = ParticleSystem(m_device, m_cbWorldMtx, m_cbViewMtx, m_cbPlateMtx, m_cbProjMtx, m_samplerWrap, XMFLOAT3(1.3f, -0.6f, 1.0f));
 
 	//Constant buffers content
 	m_cbLightPos.Update(m_device.context(), LIGHT_POS);

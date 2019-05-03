@@ -42,7 +42,7 @@ namespace mini::gk2
 		ConstantBuffer<XMFLOAT4> m_cbLightColor;	//pixel shader constant buffer slot 0
 		ConstantBuffer<XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
 		ConstantBuffer<XMFLOAT4X4> m_cbMirrorTexMtx;
-		ConstantBuffer<XMFLOAT4X4> m_cbPlateMtx;
+		ConstantBuffer<XMFLOAT4X4,2> m_cbPlateMtx;
 
 		double angle = 0;
 
@@ -67,7 +67,8 @@ namespace mini::gk2
 		dx_ptr<ID3D11SamplerState> m_samplerWrap;
 		dx_ptr<ID3D11ShaderResourceView> m_mirrorTexture;
 
-		XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6], m_mirrorMtx, m_cylinderMtx, m_lightMtx;
+		XMFLOAT4X4 m_projMtx, m_wallsMtx[6], m_plateMtx[2], m_pumaMtx[6],
+			m_mirrorMtx, m_cylinderMtx, m_lightMtx, m_particleMtx;
 
 		PhongEffect m_phongEffect;
 		TexturedEffect m_mirrorTexturedEffect;

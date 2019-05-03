@@ -1,11 +1,18 @@
-cbuffer cbView : register(b0) //Vertex Shader constant buffer slot 1
+cbuffer cbWorld : register(b0) //Vertex Shader constant buffer slot 0 - matches slot in vsBilboard.hlsl
+{
+	matrix worldMatrix;
+}; 
+
+cbuffer cbView : register(b1) //Vertex Shader constant buffer slot 1
 {
 	matrix viewMatrix;
+	matrix invViewMatrix;
 };
 
-cbuffer plateView : register(b1) //Vertex Shader constant buffer slot 2
+cbuffer plateView : register(b2) //Vertex Shader constant buffer slot 2
 {
 	matrix plateMatrix;
+	matrix invPlateMatrix;
 };
 
 struct VSInput
