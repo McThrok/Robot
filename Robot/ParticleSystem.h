@@ -14,9 +14,11 @@ namespace mini
 			float Age;
 			float Angle;
 			float Size;
-			static const D3D11_INPUT_ELEMENT_DESC Layout[4];
+			DirectX::XMFLOAT3 Velocity;
+			static const D3D11_INPUT_ELEMENT_DESC Layout[5];
 
-			ParticleVertex() : Pos(0.0f, 0.0f, 0.0f), Age(0.0f), Angle(0.0f), Size(0.0f) { }
+			ParticleVertex() : Pos(0.0f, 0.0f, 0.0f), Age(0.0f), Angle(0.0f), 
+				Size(0.0f), Velocity(0.0f, 0.0f, 0.0f){ }
 		};
 
 		struct ParticleVelocities

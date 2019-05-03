@@ -129,9 +129,11 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 
 	XMMATRIX mtx = XMLoadFloat4x4(&m_plateMtx[0]);
 	auto invMtx = XMMatrixInverse(nullptr, mtx);
-	XMFLOAT4X4 view[2] = { m_plateMtx[0] };
-	XMStoreFloat4x4(view + 1, invMtx);
-	m_cbPlateMtx.Update(m_device.context(), view);
+	XMFLOAT4X4 plate[2] = { m_plateMtx[0] };
+	XMStoreFloat4x4(&plate[1], invMtx);
+	m_cbPlateMtx.Update(m_device.context(), plate);
+
+	XMStoreFloat4x4(&m_particleMtx, XMMatrixRotationY(XM_PIDIV2));
 
 	m_particles = ParticleSystem(m_device, m_cbWorldMtx, m_cbViewMtx, m_cbPlateMtx, m_cbProjMtx, m_samplerWrap, XMFLOAT3(1.3f, -0.6f, 1.0f));
 
@@ -212,7 +214,7 @@ void Scene::Update(const Clock& c)
 	//XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
 	//	* XMMatrixRotationAxis(MIRROR_AXIS, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
 
-	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.5f, 0.0f, 0.0f)
+	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.5f, 0.0f)
 		*XMMatrixRotationZ(-angle) * XMLoadFloat4x4(&m_plateMtx[0]));
 	UpdateRobotMtx(dt, pos);
 
@@ -387,7 +389,7 @@ void Scene::DrawMirroredWorld(XMMATRIX m_view)
 	DrawCylinder();
 
 	m_device.context()->RSSetState(nullptr);
-	DrawMirroredParticles();
+	//DrawMirroredParticles();
 
 	XMFLOAT4X4 old_view;
 	XMStoreFloat4x4(&old_view, m_view);
@@ -451,6 +453,7 @@ void Scene::DrawParticles()
 
 	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
 	m_device.context()->OMSetDepthStencilState(m_dssNoWrite.get(), 0);
+	m_cbWorldMtx.Update(m_device.context(), m_particleMtx);
 	m_particles.Render(m_device.context());
 	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
