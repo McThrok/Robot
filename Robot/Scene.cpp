@@ -72,13 +72,12 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	for (size_t i = 0; i < 2; i++)
 		m_plate[i] = m_device.CreateMesh(indices, vertices);
 
-	XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationY(-XM_PI / 3)
-	//XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationY(-XM_PIDIV2)
-		* XMMatrixRotationX(XM_PIDIV2)
+	XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationX(XM_PI / 6)
+		* XMMatrixRotationY(-XM_PIDIV2)
 		* XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
-	XMStoreFloat4x4(&m_plateMtx[1], XMMatrixRotationY(2 * XM_PI / 3)
-	//XMStoreFloat4x4(&m_plateMtx[1], XMMatrixRotationY(XM_PIDIV2)
-		* XMMatrixRotationX(XM_PIDIV2)
+
+	XMStoreFloat4x4(&m_plateMtx[1], XMMatrixRotationX(-XM_PI / 6)
+		* XMMatrixRotationY(XM_PIDIV2)
 		* XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
 
 	XMMATRIX m_scale = XMMatrixScaling(1.0f, 1.0f, -1.0f);
@@ -141,12 +140,12 @@ void Scene::CreateRenderStates()
 {
 	DepthStencilDescription dssDesc;
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	m_dssNoWrite = m_device.CreateDepthStencilState(dssDesc); 
+	m_dssNoWrite = m_device.CreateDepthStencilState(dssDesc);
 	m_dssWrite = m_device.CreateDepthStencilState(dssDesc.StencilWriteDescription());
 	m_dssTest = m_device.CreateDepthStencilState(dssDesc.StencilTestDescription());
 	dssDesc = dssDesc.StencilTestDescription();
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	m_dssTestNoWrite = m_device.CreateDepthStencilState(dssDesc); 
+	m_dssTestNoWrite = m_device.CreateDepthStencilState(dssDesc);
 	m_rsCCW = m_device.CreateRasterizerState(RasterizerDescription(true));
 
 	BlendDescription bsDesc;
@@ -204,8 +203,11 @@ void Scene::Update(const Clock& c)
 
 	//XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
 	//	* XMMatrixRotationAxis({ 1, 0, 0 }, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
-	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
-		* XMMatrixRotationAxis(MIRROR_AXIS, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
+	//XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
+	//	* XMMatrixRotationAxis(MIRROR_AXIS, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
+
+	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.5f, 0.0f, 0.0f)
+		*XMMatrixRotationZ(-angle) * XMLoadFloat4x4(&m_plateMtx[0]));
 	UpdateRobotMtx(dt, pos);
 
 	XMFLOAT3 emitterPos;
