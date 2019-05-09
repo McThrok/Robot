@@ -1,5 +1,4 @@
 #include "MovableCamera.h"
-
 using namespace mini;
 using namespace DirectX;
 
@@ -67,4 +66,3 @@ void mini::MovableCamera::Move(XMFLOAT3 globalMove)
 	m_position.x += locaMove.x;
 	m_position.z += locaMove.z;
 }
-

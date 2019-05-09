@@ -29,7 +29,7 @@ namespace mini::gk2
 		static constexpr BYTE KEY_A = 30;
 		static constexpr BYTE KEY_S = 31;
 		static constexpr BYTE KEY_D = 32;
-		static constexpr BYTE KEY_Z = 44;
+		static constexpr BYTE KEY_E = 18;
 	};
 }
 
