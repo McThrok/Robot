@@ -23,7 +23,7 @@ const float ParticleSystem::MAX_ANGLE = XM_PIDIV2 / 9.0f;
 const float ParticleSystem::PARTICLE_SIZE = 0.08f;
 const float ParticleSystem::MIN_ANGLE_VEL = -XM_PI;
 const float ParticleSystem::MAX_ANGLE_VEL = XM_PI;
-const int ParticleSystem::MAX_PARTICLES = 100;
+const int ParticleSystem::MAX_PARTICLES = 1000;
 
 const unsigned int ParticleSystem::STRIDE = sizeof(ParticleVertex);
 const unsigned int ParticleSystem::OFFSET = 0;
@@ -98,13 +98,14 @@ void ParticleSystem::Render(const dx_ptr<ID3D11DeviceContext>& context) const
 
 XMFLOAT3 ParticleSystem::RandomVelocity(float angle)
 {
-	XMFLOAT3 v{ 0, 0, -1.0f };
+	XMFLOAT3 v;
 
-	static const uniform_real_distribution<float> angleDist(-0.9, 0.9);
-	float velocityMultiplyer = angleDist(m_random);
-	v.y = velocityMultiplyer;
-	velocityMultiplyer = angleDist(m_random);
-	v.x = velocityMultiplyer;
+	static const uniform_real_distribution<float> randZ(-1.2, -0.8);
+	v.z = randZ(m_random);
+
+	static const uniform_real_distribution<float> randXY(-0.9, 0.9);
+	v.y = randXY(m_random);
+	v.x = randXY(m_random);
 
 	return v;
 }
@@ -117,9 +118,7 @@ void ParticleSystem::AddNewParticle(float angle)
 	p.Vertex.Age = 0;
 	p.Vertex.Size = PARTICLE_SIZE;
 	p.Vertex.Pos = { 0.5f * sin(angle), 0.5f * cos(angle), 0 };
-	p.Vertex.Angle = 0;
 	p.Velocities.Velocity = RandomVelocity(angle);
-	p.Velocities.AngularVelocity = anglularVelDist(m_random);
 
 	p.Vertex.Velocity = p.Velocities.Velocity;
 
