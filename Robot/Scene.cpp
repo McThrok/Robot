@@ -88,7 +88,7 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	// Cylinder
 	tie(vertices, indices) = MeshLoader::CreateCylinder(0.4f, 2.0f, 20);
 	m_cylinder = m_device.CreateMesh(indices, vertices);
-	XMStoreFloat4x4(&m_cylinderMtx, XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(1.0f, 0.0f, 1.5f));
+	XMStoreFloat4x4(&m_cylinderMtx, XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(-2.0f, 0.0f, 1.5f));
 
 	// Puma
 	for (size_t i = 0; i < 6; i++)
@@ -126,7 +126,6 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbMirrorTexMtx, m_samplerWrap, m_mirrorTexture);
 
 	// Particles
-
 	XMMATRIX mtx = XMLoadFloat4x4(&m_plateMtx[0]);
 	auto invMtx = XMMatrixInverse(nullptr, mtx);
 	XMFLOAT4X4 plate[2] = { m_plateMtx[0] };
@@ -205,7 +204,7 @@ void Scene::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
 void Scene::Update(const Clock& c)
 {
 	double dt = c.getFrameTime();
-	angle += dt;
+	angle += dt / 10 * 9;
 
 	HandleCameraInput(dt);
 
@@ -382,14 +381,12 @@ void Scene::DrawMirroredWorld(XMMATRIX m_view)
 	DrawPuma();
 	DrawWalls();
 	DrawCylinder();
-
 	DrawMirroredParticles();
 	m_device.context()->RSSetState(nullptr);
 
 	XMFLOAT4X4 old_view;
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
-
 }
 
 void Scene::DrawLight()

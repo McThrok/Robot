@@ -118,8 +118,8 @@ void ParticleSystem::AddNewParticle(float angle)
 	p.Vertex.Age = 0;
 	p.Vertex.Size = PARTICLE_SIZE;
 	p.Vertex.Pos = { 0.5f * sin(angle), 0.5f * cos(angle), 0 };
+	
 	p.Velocities.Velocity = RandomVelocity(angle);
-
 	p.Vertex.Velocity = p.Velocities.Velocity;
 
 	m_particles.push_back(p);

@@ -50,7 +50,6 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	o.tex2.x = i.age / TimeToLive;
 	o.tex2.y = 0.5f;
 
-
 	o.pos = i.pos;
 	o.pos += mul(i.worldMatrix, float4(-dx, -dy, 0, 0));
 	o.pos = mul(plateMatrix, o.pos);

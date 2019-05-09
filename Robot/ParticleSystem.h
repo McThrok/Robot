@@ -1,8 +1,8 @@
 #pragma once
 #include <DirectXMath.h>
-#include "effect.h"
 #include <list>
 #include <random>
+#include "effect.h"
 
 namespace mini
 {
