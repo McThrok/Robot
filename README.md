@@ -1,12 +1,12 @@
 # Robot
 
-Project created within CAD/CAM laboratory at the MiNI Faculty (WUT).  It uses DirectX 11.
+Project created within Computer Graphics 2 laboratory at the MiNI Faculty (WUT).  It uses DirectX 11.
 
 ## Purpose
 
 The task was to create and display an example animated scene with a robot "PUMA". The project consist of the following elements:
 
-- Robot arms animation; arms' positions and rotations are calculated using solution of **inverse kinematics** task
+- **Robot arm animation**; arms' parts positions and rotations are calculated using solution of **inverse kinematics** task
 - **Camera** with five defree of freedom
 - **Phong lighting**
 - Shadows using **shadow volume** technics
@@ -15,9 +15,10 @@ The task was to create and display an example animated scene with a robot "PUMA"
 
 ## Usage
 
-Camera 
+Camera :
+
 - WSAD - movement
-- QE - up, down
+- QE - down, up
 - Click left mouse and drag to rotate camera
 
 ## Screenshots
