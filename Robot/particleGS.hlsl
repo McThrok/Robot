@@ -3,9 +3,15 @@ cbuffer cbView : register(b0) //Vertex Shader constant buffer slot 1
 	matrix viewMatrix;
 };
 
-cbuffer cbProj : register(b1) //Geometry Shader constant buffer slot 0
+cbuffer cbProj : register(b1) //Geometry Shader constant buffer slot 1
 {
 	matrix projMatrix;
+};
+
+cbuffer cbPlate : register(b2) //Vertex Shader constant buffer slot 2
+{
+	matrix plateMatrix;
+	matrix invPlateMatrix;
 };
 
 struct GSInput
@@ -14,8 +20,7 @@ struct GSInput
 	float age : TEXCOORD0;
 	float angle : TEXCOORD1;
 	float size : TEXCOORD2;
-	float4x4 a : MYMATRIX;
-	float4x4 b : MYPLATEMATRIX;
+	float4x4 worldMatrix : MYMATRIX;
 };
 
 struct PSInput
@@ -32,7 +37,6 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 {
 	GSInput i = inArray[0];
 	i.angle = 0;
-	//	i.pos = mul(viewMatrix, i.pos);
 
 	float sina, cosa;
 	sincos(i.angle, sina, cosa);
@@ -48,10 +52,8 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 
 
 	o.pos = i.pos;
-	o.pos += mul(i.a, float4(-dx, -dy, 0, 0));
-	//o.pos.x -= dx;
-	//o.pos.y -= dy;
-	o.pos = mul(i.b, o.pos);
+	o.pos += mul(i.worldMatrix, float4(-dx, -dy, 0, 0));
+	o.pos = mul(plateMatrix, o.pos);
 	o.pos = mul(viewMatrix, o.pos);
 	o.pos = mul(projMatrix, o.pos);
 	o.tex1.x = 0;
@@ -59,10 +61,8 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	ostream.Append(o);
 
 	o.pos = i.pos;
-	o.pos += mul(i.a, float4(-dy, dx, 0, 0));
-	//o.pos.x -= dy;
-	//o.pos.y += dx;
-	o.pos = mul(i.b, o.pos);
+	o.pos += mul(i.worldMatrix, float4(-dy, dx, 0, 0));
+	o.pos = mul(plateMatrix, o.pos);
 	o.pos = mul(viewMatrix, o.pos);
 	o.pos = mul(projMatrix, o.pos);
 	o.tex1.x = 0;
@@ -70,10 +70,8 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	ostream.Append(o);
 
 	o.pos = i.pos;
-	o.pos += mul(i.a, float4(dy, -dx, 0, 0));
-	//o.pos.x += dy;
-	//o.pos.y -= dx;
-	o.pos = mul(i.b, o.pos);
+	o.pos += mul(i.worldMatrix, float4(dy, -dx, 0, 0));
+	o.pos = mul(plateMatrix, o.pos);
 	o.pos = mul(viewMatrix, o.pos);
 	o.pos = mul(projMatrix, o.pos);
 	o.tex1.x = 1;
@@ -81,10 +79,8 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	ostream.Append(o);
 
 	o.pos = i.pos;
-	o.pos += mul(i.a, float4(dx, dy, 0, 0));
-	//o.pos.x += dx;
-	//o.pos.y += dy;
-	o.pos = mul(i.b, o.pos);
+	o.pos += mul(i.worldMatrix, float4(dx, dy, 0, 0));
+	o.pos = mul(plateMatrix, o.pos);
 	o.pos = mul(viewMatrix, o.pos);
 	o.pos = mul(projMatrix, o.pos);
 	o.tex1.x = 1;

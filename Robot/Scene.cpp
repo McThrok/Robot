@@ -209,11 +209,6 @@ void Scene::Update(const Clock& c)
 
 	HandleCameraInput(dt);
 
-	//XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
-	//	* XMMatrixRotationAxis({ 1, 0, 0 }, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
-	//XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
-	//	* XMMatrixRotationAxis(MIRROR_AXIS, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
-
 	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.5f, 0.0f)
 		*XMMatrixRotationZ(-angle) * XMLoadFloat4x4(&m_plateMtx[0]));
 	UpdateRobotMtx(dt, pos);
