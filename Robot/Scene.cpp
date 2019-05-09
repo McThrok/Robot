@@ -2,16 +2,17 @@
 #include "Scene.h"
 #include "meshLoader.h"
 #include <DirectXMath.h>
-
 using namespace mini;
 using namespace utils;
 using namespace gk2;
 using namespace DirectX;
 using namespace std;
 
-const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
-const float Scene::VOLUME_OFFSET = 4.0f;
 const unsigned int Scene::BS_MASK = 0xffffffff;
+const float Scene::VOLUME_OFFSET = 4.0f;
+const XMFLOAT4 Scene::LIGHT_POS = { -1.0f, 1.0f, -1.0f, 1.0f };
+const XMVECTOR Scene::MIRROR_AXIS = { sqrt(3), 1, 0 };
+
 const XMFLOAT4 Scene::WHITE_COLOR = { 1.0f, 1.0f, 1.0f, 1.0f };
 const XMFLOAT4 Scene::BLACK_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
 const XMFLOAT4 Scene::PUMA_COLOR = { 125.0f / 255.0f, 167.0f / 255.0f, 216.0f / 255.0f, 100.0f / 255.0f };
@@ -30,13 +31,14 @@ m_cbWorldMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 m_cbProjMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 m_cbMirrorTexMtx(m_device.CreateConstantBuffer<XMFLOAT4X4>()),
 m_cbViewMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
+m_cbPlateMtx(m_device.CreateConstantBuffer<XMFLOAT4X4, 2>()),
 m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 m_cbLightColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>()),
 //Textures
 m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_texture.png"))
 {
-	//Projection matrix
+	// Projection matrix
 	auto s = m_window.getClientSize();
 	auto ar = static_cast<float>(s.cx) / s.cy;
 	XMStoreFloat4x4(&m_projMtx, XMMatrixPerspectiveFovLH(XM_PIDIV4, ar, 0.01f, 100.0f));
@@ -44,11 +46,11 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 
 	CreateRenderStates();
 
-	//Meshes
+	// Meshes
 	vector<VertexPositionNormal> vertices;
 	vector<unsigned short> indices;
 
-	//light
+	// Light
 	tie(vertices, indices) = MeshLoader::CreateBox(0.05f);
 	m_light = m_device.CreateMesh(indices, vertices);
 
@@ -70,11 +72,12 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	for (size_t i = 0; i < 2; i++)
 		m_plate[i] = m_device.CreateMesh(indices, vertices);
 
-	XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationY(-XM_PI / 3)
-		* XMMatrixRotationX(XM_PIDIV2)
+	XMStoreFloat4x4(&m_plateMtx[0], XMMatrixRotationX(XM_PI / 6)
+		* XMMatrixRotationY(-XM_PIDIV2)
 		* XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
-	XMStoreFloat4x4(&m_plateMtx[1], XMMatrixRotationY(2 * XM_PI / 3)
-		* XMMatrixRotationX(XM_PIDIV2)
+
+	XMStoreFloat4x4(&m_plateMtx[1], XMMatrixRotationX(-XM_PI / 6)
+		* XMMatrixRotationY(XM_PIDIV2)
 		* XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
 
 	XMMATRIX m_scale = XMMatrixScaling(1.0f, 1.0f, -1.0f);
@@ -85,7 +88,7 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	// Cylinder
 	tie(vertices, indices) = MeshLoader::CreateCylinder(0.4f, 2.0f, 20);
 	m_cylinder = m_device.CreateMesh(indices, vertices);
-	XMStoreFloat4x4(&m_cylinderMtx, XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(1.0f, 0.0f, 1.5f));
+	XMStoreFloat4x4(&m_cylinderMtx, XMMatrixRotationZ(XM_PIDIV2) * XMMatrixTranslation(-2.0f, 0.0f, 1.5f));
 
 	// Puma
 	for (size_t i = 0; i < 6; i++)
@@ -122,6 +125,17 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 	m_mirrorTexturedEffect = TexturedEffect(m_device.CreateVertexShader(vsCode), m_device.CreatePixelShader(psCode),
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbMirrorTexMtx, m_samplerWrap, m_mirrorTexture);
 
+	// Particles
+	XMMATRIX mtx = XMLoadFloat4x4(&m_plateMtx[0]);
+	auto invMtx = XMMatrixInverse(nullptr, mtx);
+	XMFLOAT4X4 plate[2] = { m_plateMtx[0] };
+	XMStoreFloat4x4(&plate[1], invMtx);
+	m_cbPlateMtx.Update(m_device.context(), plate);
+
+	XMStoreFloat4x4(&m_particleMtx, XMMatrixRotationY(XM_PIDIV2));
+
+	m_particles = ParticleSystem(m_device, m_cbWorldMtx, m_cbViewMtx, m_cbPlateMtx, m_cbProjMtx, m_samplerWrap, XMFLOAT3(1.3f, -0.6f, 1.0f));
+
 	//Constant buffers content
 	m_cbLightPos.Update(m_device.context(), LIGHT_POS);
 
@@ -132,8 +146,13 @@ m_mirrorTexture(m_device.CreateShaderResourceView(L"resources/textures/mirror_te
 void Scene::CreateRenderStates()
 {
 	DepthStencilDescription dssDesc;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	m_dssNoWrite = m_device.CreateDepthStencilState(dssDesc);
 	m_dssWrite = m_device.CreateDepthStencilState(dssDesc.StencilWriteDescription());
 	m_dssTest = m_device.CreateDepthStencilState(dssDesc.StencilTestDescription());
+	dssDesc = dssDesc.StencilTestDescription();
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	m_dssTestNoWrite = m_device.CreateDepthStencilState(dssDesc);
 	m_rsCCW = m_device.CreateRasterizerState(RasterizerDescription(true));
 
 	BlendDescription bsDesc;
@@ -185,21 +204,26 @@ void Scene::UpdateCameraCB(DirectX::XMFLOAT4X4 cameraMtx)
 void Scene::Update(const Clock& c)
 {
 	double dt = c.getFrameTime();
+	angle += dt / 10 * 9;
+
 	HandleCameraInput(dt);
-	UpdateRobotMtx(dt);
+
+	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.5f, 0.0f)
+		*XMMatrixRotationZ(-angle) * XMLoadFloat4x4(&m_plateMtx[0]));
+	UpdateRobotMtx(dt, pos);
+
+	XMFLOAT3 emitterPos;
+	XMStoreFloat3(&emitterPos, pos);
+	UpdateParticles(dt, emitterPos);
 
 	for (size_t i = 0; i < 6; i++)
 		UpdateShadowVolume(i);
 }
 
-void Scene::UpdateRobotMtx(float dt)
+void Scene::UpdateRobotMtx(float dt, XMVECTOR pos)
 {
-	angle += dt;
-	XMVECTOR axis = { sqrt(3), 1, 0 };
-	XMVECTOR pos = XMVector3Transform({ 0, 0, 0, 1 }, XMMatrixTranslation(0.0f, 0.0f, 0.5f)
-		* XMMatrixRotationAxis(axis, angle) * XMMatrixTranslation(-1.5f, 0.2f, 0.0f));
 	float a1, a2, a3, a4, a5;
-	InverseKinematics(pos, axis, a1, a2, a3, a4, a5);
+	InverseKinematics(pos, MIRROR_AXIS, a1, a2, a3, a4, a5);
 
 	XMStoreFloat4x4(&m_pumaMtx[1], XMMatrixRotationY(a1));
 
@@ -218,7 +242,11 @@ void Scene::UpdateRobotMtx(float dt)
 	m = XMLoadFloat4x4(&m_pumaMtx[4]);
 	XMStoreFloat4x4(&m_pumaMtx[5], XMMatrixTranslation(1.72f, -0.27f, 0.26f)
 		* XMMatrixRotationZ(a5) * XMMatrixTranslation(-1.72f, 0.27f, -0.26f) * m);
+}
 
+void Scene::UpdateParticles(float dt, XMFLOAT3 emitterPos)
+{
+	m_particles.Update(m_device.context(), static_cast<float>(dt), m_camera.GetPosition(), emitterPos, angle);
 }
 
 void Scene::InverseKinematics(XMVECTOR pos, XMVECTOR normal,
@@ -264,11 +292,13 @@ void Scene::Render()
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
 
-
 	m_phongEffect.Begin(m_device.context());
 	FillStencilShadows();
 	RenderScene();
 	RenderMirror(m_view);
+
+	DrawParticles();
+	m_phongEffect.Begin(m_device.context());
 }
 
 void Scene::FillStencilShadows()
@@ -325,6 +355,7 @@ void Scene::RenderMirror(XMMATRIX m_view)
 	DrawMirroredWorld(m_view);
 
 	//draw mirror texture
+	m_device.context()->OMSetDepthStencilState(m_dssTest.get(), 1);
 	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
 	m_mirrorTexturedEffect.SetTexture(m_mirrorTexture);
 	m_mirrorTexturedEffect.Begin(m_device.context());
@@ -350,11 +381,12 @@ void Scene::DrawMirroredWorld(XMMATRIX m_view)
 	DrawPuma();
 	DrawWalls();
 	DrawCylinder();
+	DrawMirroredParticles();
+	m_device.context()->RSSetState(nullptr);
 
 	XMFLOAT4X4 old_view;
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
-	m_device.context()->RSSetState(nullptr);
 }
 
 void Scene::DrawLight()
@@ -399,6 +431,47 @@ void Scene::DrawShadowVolumes()
 {
 	for (size_t i = 0; i < 6; i++)
 		DrawMesh(m_pumaShadow[i], m_pumaMtx[i]);
+}
+
+void Scene::DrawParticles()
+{
+	m_device.context()->OMSetBlendState(m_bsNoDraw.get(), nullptr, BS_MASK);
+	//fill z-buffer
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	DrawCylinder();
+	DrawPuma();
+	DrawLight();
+	DrawPlateBack();
+	DrawPlateFront();
+
+	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+	m_device.context()->OMSetDepthStencilState(m_dssNoWrite.get(), 0);
+	m_cbWorldMtx.Update(m_device.context(), m_particleMtx);
+	m_particles.Render(m_device.context());
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+
+	//Particles use a geometry shader and different input layout and topology
+	//which need to be reset before drawing anything else
+	m_device.context()->GSSetShader(nullptr, nullptr, 0);
+	m_device.context()->IASetInputLayout(m_inputlayout.get());
+	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void Scene::DrawMirroredParticles()
+{
+	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+	m_device.context()->OMSetDepthStencilState(m_dssTestNoWrite.get(), 1);
+	m_cbWorldMtx.Update(m_device.context(), m_particleMtx);
+	m_particles.Render(m_device.context());
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+
+	//Particles use a geometry shader and different input layout and topology
+	//which need to be reset before drawing anything else
+	m_device.context()->GSSetShader(nullptr, nullptr, 0);
+	m_device.context()->IASetInputLayout(m_inputlayout.get());
+	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void Scene::UpdateShadowVolume(int partIdx)
