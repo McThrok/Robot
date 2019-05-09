@@ -41,10 +41,14 @@ GSInput main(VSInput i)
 {
 	GSInput o = (GSInput)0;
 	o.pos = float4(i.pos, 1.0f);
-	i.velocity += mul(invPlateMatrix, gravityVec*i.age);
+	//i.velocity += mul(invPlateMatrix, gravityVec*i.age);
 	o.pos += float4(i.velocity*i.age, 0);
+	o.pos -= float4(i.velocity*i.age*i.age/2, 0);
+	o.pos += mul(invPlateMatrix, gravityVec*i.age*i.age);
 	//o.pos = mul(plateMatrix, o.pos);
 	//o.pos.y -= i.age * i.age;
+
+	float3 dVel = i.velocity - i.velocity*i.age + mul(invPlateMatrix, gravityVec*i.age);
 
 	float4 viewPos = mul(invViewMatrix, float4(0, 0, 0, 1));
 	//viewPos = float4(0, 0, 0, 1);
@@ -52,7 +56,7 @@ GSInput main(VSInput i)
 	//float4 viewVec = normalize(viewPos - o.pos);
 	//float4 viewVec = float4(1, -5, 0, 0);
 
-	float4 z = normalize(float4(-i.velocity, 0));
+	float4 z = normalize(float4(-dVel, 0));
 	float4 y = float4(normalize(cross(z, -viewVec)), 0);
 	float4 x = float4(normalize(cross(z, y)), 0);
 	float4 w = float4(0, 0, 0, 1);
