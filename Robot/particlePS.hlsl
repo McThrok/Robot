@@ -13,7 +13,7 @@ float4 main(PSInput i) : SV_TARGET
 {
 	float4 color = cloudMap.Sample(colorSampler, i.tex1);
 	float4 opacity = opacityMap.Sample(colorSampler, i.tex2);
-	float alpha = color.a * opacity.a * 0.3f;
+	float alpha = color.a * opacity.a*0.5;
 	if (alpha == 0.0f)
 		discard;
 	return float4(color.xyz,alpha);

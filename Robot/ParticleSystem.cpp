@@ -20,13 +20,10 @@ const XMFLOAT3 ParticleSystem::EMITTER_DIR = XMFLOAT3(0.0f, 1.0f, 0.0f);
 const float ParticleSystem::TIME_TO_LIVE = 1.0f;
 const float ParticleSystem::EMISSION_RATE = 100.0f;
 const float ParticleSystem::MAX_ANGLE = XM_PIDIV2 / 9.0f;
-const float ParticleSystem::MIN_VELOCITY = 0.4f;
-const float ParticleSystem::MAX_VELOCITY = 0.8f;
 const float ParticleSystem::PARTICLE_SIZE = 0.08f;
-const float ParticleSystem::PARTICLE_SCALE = 1.0f;
 const float ParticleSystem::MIN_ANGLE_VEL = -XM_PI;
 const float ParticleSystem::MAX_ANGLE_VEL = XM_PI;
-const int ParticleSystem::MAX_PARTICLES = 1000;
+const int ParticleSystem::MAX_PARTICLES = 100;
 
 const unsigned int ParticleSystem::STRIDE = sizeof(ParticleVertex);
 const unsigned int ParticleSystem::OFFSET = 0;
@@ -119,7 +116,6 @@ void ParticleSystem::AddNewParticle(float angle)
 	// Setup initial particle properties
 	p.Vertex.Age = 0;
 	p.Vertex.Size = PARTICLE_SIZE;
-	//p.Vertex.Pos = m_emitterPos;
 	p.Vertex.Pos = { 0.5f * sin(angle), 0.5f * cos(angle), 0 };
 	p.Vertex.Angle = 0;
 	p.Velocities.Velocity = RandomVelocity(angle);
