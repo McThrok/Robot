@@ -388,12 +388,13 @@ void Scene::DrawMirroredWorld(XMMATRIX m_view)
 	DrawWalls();
 	DrawCylinder();
 
+	DrawMirroredParticles();
 	m_device.context()->RSSetState(nullptr);
-	//DrawMirroredParticles();
 
 	XMFLOAT4X4 old_view;
 	XMStoreFloat4x4(&old_view, m_view);
 	UpdateCameraCB(old_view);
+
 }
 
 void Scene::DrawLight()
@@ -469,6 +470,7 @@ void Scene::DrawMirroredParticles()
 {
 	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
 	m_device.context()->OMSetDepthStencilState(m_dssTestNoWrite.get(), 1);
+	m_cbWorldMtx.Update(m_device.context(), m_particleMtx);
 	m_particles.Render(m_device.context());
 	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
